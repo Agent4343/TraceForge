@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,7 +41,10 @@ def _user_out(user: User) -> UserOut:
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    from app.core.rate_limit import auth_rate_limiter
+
+    auth_rate_limiter.check(request)
     result = await db.execute(select(User).where(User.email == body.email, User.is_active.is_(True)))
     user = result.scalar_one_or_none()
     if user is None or not verify_password(body.password, user.password_hash):

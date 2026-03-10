@@ -320,11 +320,10 @@ async def submit_responses(
         device_id=body[0].device_id if body else "server",
     )
 
-    await db.commit()
-    for r in created:
-        await db.refresh(r)
+    await db.flush()
 
-    return [
+    # Build response before commit to avoid refresh issues
+    result = [
         FormResponseOut(
             id=r.id,
             workflow_id=r.workflow_id,
@@ -338,6 +337,9 @@ async def submit_responses(
         )
         for r in created
     ]
+
+    await db.commit()
+    return result
 
 
 # ── Signatures ───────────────────────────────────────────────────────────────
