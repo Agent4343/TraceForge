@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FormFlow — Digital Workflows, E-Signatures & Audit Trails</title>
+    <title>FormFlow — Build Online Work Forms, Fast</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -204,7 +204,7 @@
         .phone-nav-item.active { color: var(--cyan); }
         .phone-nav-icon { font-size: 1.1rem; }
 
-        /* ── INDUSTRIES ── */
+        /* ── USE CASES ── */
         .industries {
             padding: 40px 2rem 80px;
             background: linear-gradient(180deg, var(--navy), var(--navy-light));
@@ -307,76 +307,85 @@
             font-size: 0.9rem; color: var(--gray-light);
         }
 
-        /* ── SIGNATURE SECTION ── */
-        .signature-section {
+        /* ── FORM BUILDER SECTION ── */
+        .builder-section {
             padding: 100px 2rem;
             background: var(--navy-light);
         }
-        .sig-grid {
+        .builder-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
             align-items: center; max-width: 1200px; margin: 0 auto;
         }
-        .sig-demo {
+        .builder-demo {
             background: var(--navy); border-radius: 24px;
             padding: 32px; border: 1px solid rgba(0, 212, 255, 0.15);
         }
-        .sig-header {
+        .builder-header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
-        .sig-header h4 { font-size: 1rem; font-weight: 600; }
-        .sig-verified {
+        .builder-header h4 { font-size: 1rem; font-weight: 600; }
+        .builder-badge {
             display: flex; align-items: center; gap: 6px;
             color: var(--green); font-size: 0.8rem; font-weight: 600;
         }
-        .sig-canvas {
-            width: 100%; height: 160px; background: var(--navy-mid);
-            border-radius: 12px; border: 2px dashed rgba(0, 212, 255, 0.2);
+        .builder-field {
+            background: var(--navy-mid); border-radius: 12px; padding: 14px 16px;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: border-color 0.2s;
+        }
+        .builder-field:hover { border-color: rgba(0, 212, 255, 0.3); }
+        .builder-field-icon {
+            width: 32px; height: 32px; border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            margin-bottom: 16px; position: relative; overflow: hidden;
+            font-size: 0.9rem; flex-shrink: 0;
         }
-        .sig-line {
-            position: absolute; bottom: 50px; left: 30px; right: 30px;
-            height: 1px; background: rgba(255,255,255,0.1);
-        }
-        .sig-scribble {
-            font-family: 'Brush Script MT', 'Segoe Script', cursive;
-            font-size: 2.5rem; color: var(--white); opacity: 0.9;
-            transform: rotate(-3deg);
-        }
-        .sig-meta {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-        }
-        .sig-meta-item {
-            background: var(--navy-mid); border-radius: 10px; padding: 12px;
-        }
-        .sig-meta-label {
-            font-size: 0.7rem; color: var(--gray); text-transform: uppercase;
-            letter-spacing: 1px; margin-bottom: 4px;
-        }
-        .sig-meta-value { font-size: 0.85rem; font-weight: 600; }
-        .sig-hash {
-            margin-top: 16px; padding: 12px; background: var(--navy-mid);
-            border-radius: 10px; font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 0.72rem; color: var(--cyan); word-break: break-all;
-            line-height: 1.5;
-        }
-        .sig-hash-label {
-            font-size: 0.65rem; color: var(--gray); text-transform: uppercase;
-            letter-spacing: 1px; margin-bottom: 6px; font-family: -apple-system, system-ui, sans-serif;
-        }
-        .sig-text h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 20px; }
-        .sig-text h2 span { color: var(--cyan); }
-        .sig-text p {
+        .builder-field-info { flex: 1; }
+        .builder-field-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+        .builder-field-type { font-size: 0.7rem; color: var(--gray); }
+        .builder-field-drag { color: var(--gray); font-size: 0.9rem; cursor: grab; }
+        .builder-text h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 20px; }
+        .builder-text h2 span { color: var(--cyan); }
+        .builder-text p {
             font-size: 1.05rem; color: var(--gray-light);
             margin-bottom: 24px; line-height: 1.7;
         }
-        .sig-checks { list-style: none; }
-        .sig-checks li {
+        .builder-checks { list-style: none; }
+        .builder-checks li {
             display: flex; align-items: flex-start; gap: 12px;
             padding: 8px 0; font-size: 0.95rem; color: var(--gray-light);
         }
-        .sig-check-icon { color: var(--green); font-size: 1.1rem; flex-shrink: 0; }
+        .builder-check-icon { color: var(--green); font-size: 1.1rem; flex-shrink: 0; }
+
+        /* ── RESPONSES SECTION ── */
+        .responses-section {
+            padding: 100px 2rem;
+            background: var(--navy-light);
+        }
+        .responses-grid {
+            display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px;
+            align-items: center; max-width: 1200px; margin: 0 auto;
+        }
+        .responses-demo {
+            background: var(--navy); border-radius: 20px;
+            padding: 24px; border: 1px solid rgba(255,255,255,0.06);
+        }
+        .response-item {
+            display: flex; gap: 16px; padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .response-item:last-child { border-bottom: none; }
+        .response-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            margin-top: 6px; flex-shrink: 0;
+        }
+        .response-dot.cyan { background: var(--cyan); }
+        .response-dot.green { background: var(--green); }
+        .response-dot.amber { background: var(--amber); }
+        .response-action { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
+        .response-detail { font-size: 0.8rem; color: var(--gray); }
+        .response-time { font-size: 0.75rem; color: var(--gray); margin-top: 2px; font-family: monospace; }
 
         /* ── PRICING ── */
         .pricing {
@@ -421,35 +430,6 @@
         .price-features .check { color: var(--green); }
         .price-features .x { color: var(--gray); opacity: 0.4; }
         .price-btn { width: 100%; text-align: center; justify-content: center; }
-
-        /* ── AUDIT TRAIL SECTION ── */
-        .audit-section {
-            padding: 100px 2rem;
-            background: var(--navy-light);
-        }
-        .audit-grid {
-            display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px;
-            align-items: center; max-width: 1200px; margin: 0 auto;
-        }
-        .audit-demo {
-            background: var(--navy); border-radius: 20px;
-            padding: 24px; border: 1px solid rgba(255,255,255,0.06);
-        }
-        .audit-item {
-            display: flex; gap: 16px; padding: 14px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
-        .audit-item:last-child { border-bottom: none; }
-        .audit-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            margin-top: 6px; flex-shrink: 0;
-        }
-        .audit-dot.cyan { background: var(--cyan); }
-        .audit-dot.green { background: var(--green); }
-        .audit-dot.amber { background: var(--amber); }
-        .audit-action { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
-        .audit-detail { font-size: 0.8rem; color: var(--gray); }
-        .audit-time { font-size: 0.75rem; color: var(--gray); margin-top: 2px; font-family: monospace; }
 
         /* ── CTA ── */
         .cta {
@@ -505,7 +485,7 @@
             .steps-container { grid-template-columns: 1fr 1fr; }
             .steps-container::before { display: none; }
             .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
-            .sig-grid, .audit-grid { grid-template-columns: 1fr; }
+            .builder-grid, .responses-grid { grid-template-columns: 1fr; }
             .hero h1 { font-size: 2.5rem; }
             .nav-links { display: none; }
         }
@@ -530,7 +510,7 @@
             <a href="#features">Features</a>
             <a href="#how-it-works">How It Works</a>
             <a href="#pricing">Pricing</a>
-            <a href="#" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">Request Demo</a>
+            <a href="#" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">Get Started Free</a>
         </div>
     </div>
 </nav>
@@ -543,14 +523,14 @@
                 <div class="hero-badge-dot"></div>
                 Now available on iOS
             </div>
-            <h1>Replace Paper<br>Checklists with<br><span>Tamper-Evident</span><br>Digital Workflows</h1>
-            <p>Multi-step, multi-person approval workflows with legally-defensible e-signatures, full audit trails, and offline-first mobile access — built for the field.</p>
+            <h1>Build Online<br>Work Forms<br><span>In Minutes</span></h1>
+            <p>Design, publish, and manage professional work forms from your phone. Collect responses, track submissions, and streamline your team's workflows — no coding required.</p>
             <div class="hero-buttons">
                 <a href="#" class="btn btn-primary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
                     Download on App Store
                 </a>
-                <a href="#" class="btn btn-outline">Request a Demo</a>
+                <a href="#" class="btn btn-outline">See How It Works</a>
             </div>
         </div>
 
@@ -564,42 +544,42 @@
                         <span>⚡ 📶</span>
                     </div>
                     <div class="phone-content">
-                        <div class="phone-header">My Tasks</div>
-                        <div class="phone-subtitle">3 tasks assigned to you</div>
+                        <div class="phone-header">My Forms</div>
+                        <div class="phone-subtitle">3 active forms</div>
                         <div class="phone-tabs">
                             <div class="phone-tab active">All</div>
-                            <div class="phone-tab">Due Today</div>
-                            <div class="phone-tab">Overdue</div>
-                            <div class="phone-tab">Handover</div>
+                            <div class="phone-tab">Published</div>
+                            <div class="phone-tab">Drafts</div>
+                            <div class="phone-tab">Archived</div>
                         </div>
 
                         <div class="task-card">
-                            <div class="task-title">Pre-Shift Safety Inspection</div>
+                            <div class="task-title">Employee Onboarding Form</div>
                             <div class="task-meta">
-                                <span>Step 2 of 4</span>
-                                <span class="task-badge badge-progress">In Progress</span>
+                                <span>42 responses</span>
+                                <span class="task-badge badge-progress">Published</span>
                             </div>
                             <div class="task-progress-bar">
-                                <div class="task-progress-fill" style="width: 50%"></div>
+                                <div class="task-progress-fill" style="width: 80%"></div>
                             </div>
                         </div>
 
                         <div class="task-card amber">
-                            <div class="task-title">Valve Pressure Check — Unit 7</div>
+                            <div class="task-title">Weekly Status Report</div>
                             <div class="task-meta">
-                                <span>Due in 2h</span>
-                                <span class="task-badge badge-due">Due Soon</span>
+                                <span>12 pending</span>
+                                <span class="task-badge badge-due">Due Friday</span>
                             </div>
                             <div class="task-progress-bar">
-                                <div class="task-progress-fill" style="width: 25%; background: var(--amber);"></div>
+                                <div class="task-progress-fill" style="width: 45%; background: var(--amber);"></div>
                             </div>
                         </div>
 
                         <div class="task-card green">
-                            <div class="task-title">Permit to Work — Hot Work</div>
+                            <div class="task-title">Equipment Request Form</div>
                             <div class="task-meta">
-                                <span>Completed</span>
-                                <span class="task-badge badge-complete">Signed ✓</span>
+                                <span>All submitted</span>
+                                <span class="task-badge badge-complete">Complete</span>
                             </div>
                             <div class="task-progress-bar">
                                 <div class="task-progress-fill" style="width: 100%; background: var(--green);"></div>
@@ -609,19 +589,19 @@
                         <div class="phone-nav-bar">
                             <div class="phone-nav-item active">
                                 <span class="phone-nav-icon">☑</span>
-                                Tasks
+                                Forms
                             </div>
                             <div class="phone-nav-item">
                                 <span class="phone-nav-icon">⬡</span>
-                                Workflows
+                                Builder
                             </div>
                             <div class="phone-nav-item">
                                 <span class="phone-nav-icon">▤</span>
-                                Templates
+                                Responses
                             </div>
                             <div class="phone-nav-item">
                                 <span class="phone-nav-icon">◔</span>
-                                Audit
+                                Analytics
                             </div>
                             <div class="phone-nav-item">
                                 <span class="phone-nav-icon">◉</span>
@@ -635,17 +615,17 @@
     </div>
 </section>
 
-<!-- ─── INDUSTRIES ─── -->
+<!-- ─── USE CASES ─── -->
 <section class="industries">
     <div class="industries-inner">
-        <div class="industries-label">Trusted by operations teams across</div>
+        <div class="industries-label">Built for teams across every industry</div>
         <div class="industry-logos">
-            <div class="industry-item"><span class="industry-icon">🛢</span> Oil & Gas</div>
+            <div class="industry-item"><span class="industry-icon">🏢</span> HR & Operations</div>
             <div class="industry-item"><span class="industry-icon">🏗</span> Construction</div>
-            <div class="industry-item"><span class="industry-icon">⚡</span> Energy & Utilities</div>
-            <div class="industry-item"><span class="industry-icon">🚢</span> Maritime</div>
+            <div class="industry-item"><span class="industry-icon">🏥</span> Healthcare</div>
+            <div class="industry-item"><span class="industry-icon">📦</span> Logistics</div>
             <div class="industry-item"><span class="industry-icon">🏭</span> Manufacturing</div>
-            <div class="industry-item"><span class="industry-icon">✈️</span> Aviation</div>
+            <div class="industry-item"><span class="industry-icon">🎓</span> Education</div>
         </div>
     </div>
 </section>
@@ -654,39 +634,39 @@
 <section class="features" id="features">
     <div class="section-inner">
         <div class="section-label">Features</div>
-        <div class="section-title">Everything You Need to Go Paperless</div>
-        <div class="section-subtitle">Built for field workers wearing gloves, working offline, in bright sunlight — not for people sitting at desks.</div>
+        <div class="section-title">Everything You Need to Build Work Forms</div>
+        <div class="section-subtitle">A powerful form builder designed for real workplace needs. Create, share, and manage forms right from your phone.</div>
 
         <div class="feature-grid">
             <div class="feature-card">
                 <div class="feature-icon fi-cyan">📋</div>
-                <h3>Multi-Step Workflows</h3>
-                <p>Create templates with multiple steps assigned to different roles. Each step auto-locks after signing — no tampering possible.</p>
+                <h3>Drag-and-Drop Builder</h3>
+                <p>Build forms visually with text fields, dropdowns, file uploads, date pickers, signatures, and more. No coding needed.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon fi-green">✍️</div>
-                <h3>Legal E-Signatures</h3>
-                <p>SHA-256 hashed signatures bound to verified identities, timestamps, and IP addresses. Holds up to regulatory audit.</p>
+                <h3>E-Signatures</h3>
+                <p>Capture legally-binding signatures directly on forms. Every signature is timestamped and tied to the signer's identity.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon fi-amber">📡</div>
-                <h3>Offline-First</h3>
-                <p>Complete forms with zero connectivity. Data syncs automatically when back online. Never lose work in the field.</p>
+                <h3>Offline Support</h3>
+                <p>Fill out and submit forms without an internet connection. Responses sync automatically when you're back online.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon fi-purple">🔄</div>
-                <h3>Shift Handover</h3>
-                <p>Transfer tasks between shifts with mandatory context notes and photos. The next person knows exactly what's happening.</p>
+                <div class="feature-icon fi-purple">🔗</div>
+                <h3>Shareable Links</h3>
+                <p>Publish forms and share them via link, QR code, or push notification. Anyone with the link can fill it out.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon fi-red">📊</div>
-                <h3>Audit Trail</h3>
-                <p>Every action logged with immutable timestamps. Export to CSV or PDF. Complete traceability for compliance officers.</p>
+                <h3>Response Analytics</h3>
+                <p>Track submissions in real time. View response summaries, filter by date, and export data to CSV or PDF.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon fi-blue">📄</div>
-                <h3>PDF Reports</h3>
-                <p>Auto-generate professional PDF reports with signatures, responses, and a cryptographic verification hash in the footer.</p>
+                <div class="feature-icon fi-blue">🔄</div>
+                <h3>Approval Workflows</h3>
+                <p>Route form submissions through multi-step approval chains. Assign reviewers, set conditions, and track progress.</p>
             </div>
         </div>
     </div>
@@ -696,142 +676,170 @@
 <section class="how-it-works" id="how-it-works">
     <div class="section-inner">
         <div class="section-label">How It Works</div>
-        <div class="section-title">From Paper to Digital in Minutes</div>
-        <div class="section-subtitle">No training required. If your team can use a phone, they can use FormFlow.</div>
+        <div class="section-title">From Idea to Live Form in Minutes</div>
+        <div class="section-subtitle">No setup, no training. Open the app and start building your first form right away.</div>
 
         <div class="steps-container">
             <div class="step-card">
                 <div class="step-number">1</div>
-                <h3>Build a Template</h3>
-                <p>Drag and drop fields — text, numbers, yes/no, photos, signatures, dropdowns — into multi-step templates.</p>
+                <h3>Design Your Form</h3>
+                <p>Pick from a template or start fresh. Add fields like text, numbers, photos, dropdowns, and signatures.</p>
             </div>
             <div class="step-card">
                 <div class="step-number">2</div>
-                <h3>Assign & Deploy</h3>
-                <p>Create a workflow from the template. Assign each step to the right person. They get a push notification instantly.</p>
+                <h3>Publish & Share</h3>
+                <p>Hit publish to generate a shareable link or QR code. Send it to your team via push notification or email.</p>
             </div>
             <div class="step-card">
                 <div class="step-number">3</div>
-                <h3>Complete & Sign</h3>
-                <p>Workers fill out their step on-site — online or offline. Sign with a finger. The step locks permanently.</p>
+                <h3>Collect Responses</h3>
+                <p>Team members fill out the form on their phone — online or offline. Submissions arrive in real time.</p>
             </div>
             <div class="step-card">
                 <div class="step-number">4</div>
-                <h3>Export & Audit</h3>
-                <p>Download a tamper-evident PDF with all signatures and a full audit log. Ready for any regulator or inspector.</p>
+                <h3>Review & Export</h3>
+                <p>Review submissions, approve or reject entries, and export everything as PDF reports or CSV files.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ─── SIGNATURE DEMO ─── -->
-<section class="signature-section">
-    <div class="sig-grid">
-        <div class="sig-demo">
-            <div class="sig-header">
-                <h4>✍️ Signature Capture</h4>
-                <div class="sig-verified">✓ Verified</div>
+<!-- ─── FORM BUILDER DEMO ─── -->
+<section class="builder-section">
+    <div class="builder-grid">
+        <div class="builder-demo">
+            <div class="builder-header">
+                <h4>Form Builder</h4>
+                <div class="builder-badge">6 fields</div>
             </div>
-            <div class="sig-canvas">
-                <div class="sig-line"></div>
-                <div class="sig-scribble">J. Martinez</div>
+
+            <div class="builder-field">
+                <div class="builder-field-icon fi-cyan">Aa</div>
+                <div class="builder-field-info">
+                    <div class="builder-field-name">Employee Name</div>
+                    <div class="builder-field-type">Text field &middot; Required</div>
+                </div>
+                <div class="builder-field-drag">&#8942;</div>
             </div>
-            <div class="sig-meta">
-                <div class="sig-meta-item">
-                    <div class="sig-meta-label">Signer</div>
-                    <div class="sig-meta-value">Jorge Martinez</div>
+
+            <div class="builder-field">
+                <div class="builder-field-icon fi-green">@</div>
+                <div class="builder-field-info">
+                    <div class="builder-field-name">Email Address</div>
+                    <div class="builder-field-type">Email field &middot; Required</div>
                 </div>
-                <div class="sig-meta-item">
-                    <div class="sig-meta-label">Timestamp</div>
-                    <div class="sig-meta-value">2026-03-10 14:32 UTC</div>
-                </div>
-                <div class="sig-meta-item">
-                    <div class="sig-meta-label">MFA Status</div>
-                    <div class="sig-meta-value" style="color: var(--green);">✓ Verified</div>
-                </div>
-                <div class="sig-meta-item">
-                    <div class="sig-meta-label">IP Address</div>
-                    <div class="sig-meta-value">192.168.4.107</div>
-                </div>
+                <div class="builder-field-drag">&#8942;</div>
             </div>
-            <div class="sig-hash">
-                <div class="sig-hash-label">SHA-256 Content Hash</div>
-                a7f3c9e1b4d82f6a0e5c3d91b7f24a8e6c0d5b3f9a2e7c4d1b8f6a3e0c5d9b2f
+
+            <div class="builder-field">
+                <div class="builder-field-icon fi-amber">▼</div>
+                <div class="builder-field-info">
+                    <div class="builder-field-name">Department</div>
+                    <div class="builder-field-type">Dropdown &middot; 8 options</div>
+                </div>
+                <div class="builder-field-drag">&#8942;</div>
+            </div>
+
+            <div class="builder-field">
+                <div class="builder-field-icon fi-purple">📅</div>
+                <div class="builder-field-info">
+                    <div class="builder-field-name">Start Date</div>
+                    <div class="builder-field-type">Date picker &middot; Required</div>
+                </div>
+                <div class="builder-field-drag">&#8942;</div>
+            </div>
+
+            <div class="builder-field">
+                <div class="builder-field-icon fi-red">📎</div>
+                <div class="builder-field-info">
+                    <div class="builder-field-name">Upload ID Document</div>
+                    <div class="builder-field-type">File upload &middot; PDF, JPG</div>
+                </div>
+                <div class="builder-field-drag">&#8942;</div>
+            </div>
+
+            <div class="builder-field">
+                <div class="builder-field-icon fi-blue">✍️</div>
+                <div class="builder-field-info">
+                    <div class="builder-field-name">Signature</div>
+                    <div class="builder-field-type">E-signature &middot; Required</div>
+                </div>
+                <div class="builder-field-drag">&#8942;</div>
             </div>
         </div>
 
-        <div class="sig-text">
-            <h2>Signatures That<br><span>Hold Up in Court</span></h2>
-            <p>Every signature is cryptographically bound to the signer's verified identity, the exact content they signed, and a precise timestamp. No one can claim "I didn't sign that."</p>
-            <ul class="sig-checks">
-                <li><span class="sig-check-icon">✓</span> SHA-256 hash links signature to content — any change invalidates it</li>
-                <li><span class="sig-check-icon">✓</span> Optional MFA verification at time of signing</li>
-                <li><span class="sig-check-icon">✓</span> IP address and device metadata captured automatically</li>
-                <li><span class="sig-check-icon">✓</span> Immutable audit log — no deletions, no edits, no exceptions</li>
-                <li><span class="sig-check-icon">✓</span> Face ID / Touch ID biometric unlock for added security</li>
+        <div class="builder-text">
+            <h2>Build Any Form<br><span>Your Team Needs</span></h2>
+            <p>From employee onboarding to equipment requests to daily reports — design custom work forms with a visual drag-and-drop builder. No technical skills required.</p>
+            <ul class="builder-checks">
+                <li><span class="builder-check-icon">✓</span> 15+ field types including text, dropdowns, file uploads, and signatures</li>
+                <li><span class="builder-check-icon">✓</span> Conditional logic to show or hide fields based on responses</li>
+                <li><span class="builder-check-icon">✓</span> Reusable templates to speed up form creation</li>
+                <li><span class="builder-check-icon">✓</span> Multi-step forms with sections and page breaks</li>
+                <li><span class="builder-check-icon">✓</span> Custom branding with your company logo and colors</li>
             </ul>
         </div>
     </div>
 </section>
 
-<!-- ─── AUDIT TRAIL ─── -->
-<section class="audit-section">
-    <div class="audit-grid">
-        <div class="audit-demo">
+<!-- ─── RESPONSES & TRACKING ─── -->
+<section class="responses-section">
+    <div class="responses-grid">
+        <div class="responses-demo">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h4 style="font-size: 1.1rem;">Live Audit Trail</h4>
-                <span style="font-size: 0.8rem; color: var(--gray);">Workflow #WF-2847</span>
+                <h4 style="font-size: 1.1rem;">Recent Submissions</h4>
+                <span style="font-size: 0.8rem; color: var(--gray);">Employee Onboarding</span>
             </div>
-            <div class="audit-item">
-                <div class="audit-dot green"></div>
+            <div class="response-item">
+                <div class="response-dot green"></div>
                 <div>
-                    <div class="audit-action">Step 3 signed by Jorge Martinez</div>
-                    <div class="audit-detail">Hot Work Permit — Final approval with e-signature</div>
-                    <div class="audit-time">2026-03-10T14:32:18.442Z</div>
+                    <div class="response-action">Sarah Chen submitted onboarding form</div>
+                    <div class="response-detail">All fields completed — ID document uploaded, signature captured</div>
+                    <div class="response-time">2026-03-10T14:32:18Z</div>
                 </div>
             </div>
-            <div class="audit-item">
-                <div class="audit-dot cyan"></div>
+            <div class="response-item">
+                <div class="response-dot cyan"></div>
                 <div>
-                    <div class="audit-action">Field "Gas Reading" updated</div>
-                    <div class="audit-detail">Value: 0.3% LEL — within safe range</div>
-                    <div class="audit-time">2026-03-10T14:28:05.119Z</div>
+                    <div class="response-action">Michael Torres started form</div>
+                    <div class="response-detail">4 of 6 fields completed — saved as draft</div>
+                    <div class="response-time">2026-03-10T13:15:42Z</div>
                 </div>
             </div>
-            <div class="audit-item">
-                <div class="audit-dot amber"></div>
+            <div class="response-item">
+                <div class="response-dot green"></div>
                 <div>
-                    <div class="audit-action">Shift handover initiated</div>
-                    <div class="audit-detail">From: Sarah Chen → To: Jorge Martinez — "Valve 7B leak resolved, monitoring…"</div>
-                    <div class="audit-time">2026-03-10T06:02:41.887Z</div>
+                    <div class="response-action">Emily Park submitted onboarding form</div>
+                    <div class="response-detail">Approved by manager — PDF report generated</div>
+                    <div class="response-time">2026-03-10T11:48:05Z</div>
                 </div>
             </div>
-            <div class="audit-item">
-                <div class="audit-dot green"></div>
+            <div class="response-item">
+                <div class="response-dot amber"></div>
                 <div>
-                    <div class="audit-action">Step 2 signed by Sarah Chen</div>
-                    <div class="audit-detail">Site Inspection — All items passed, 3 photos attached</div>
-                    <div class="audit-time">2026-03-10T05:45:22.310Z</div>
+                    <div class="response-action">James Wilson submission needs review</div>
+                    <div class="response-detail">Pending manager approval — awaiting signature</div>
+                    <div class="response-time">2026-03-10T09:22:31Z</div>
                 </div>
             </div>
-            <div class="audit-item">
-                <div class="audit-dot cyan"></div>
+            <div class="response-item">
+                <div class="response-dot green"></div>
                 <div>
-                    <div class="audit-action">Workflow created</div>
-                    <div class="audit-detail">Template: Hot Work Permit v3 — 4 steps, 3 assigned users</div>
-                    <div class="audit-time">2026-03-09T22:10:00.000Z</div>
+                    <div class="response-action">Form published</div>
+                    <div class="response-detail">Employee Onboarding v2 — 6 fields, shared with 15 users</div>
+                    <div class="response-time">2026-03-09T16:00:00Z</div>
                 </div>
             </div>
         </div>
 
         <div>
-            <div class="section-label" style="text-align: left;">Compliance Ready</div>
-            <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 20px;">Every Action<br>Recorded. <span style="color: var(--cyan);">Forever.</span></h2>
+            <div class="section-label" style="text-align: left;">Real-Time Tracking</div>
+            <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 20px;">Every Submission<br>Tracked. <span style="color: var(--cyan);">Instantly.</span></h2>
             <p style="font-size: 1.05rem; color: var(--gray-light); margin-bottom: 24px; line-height: 1.7;">
-                When the inspector asks "who did what, and when?" — you have the answer in seconds. Not days of digging through filing cabinets.
+                See who has submitted, who hasn't, and what needs your approval — all from one dashboard. No more chasing people for missing forms.
             </p>
             <p style="font-size: 1.05rem; color: var(--gray-light); line-height: 1.7;">
-                Export as CSV for analysis, or include the full trail in your tamper-evident PDF. Every field change, every signature, every handover — timestamped and immutable.
+                Export responses as CSV for analysis or generate professional PDF reports with all form data, signatures, and timestamps included.
             </p>
         </div>
     </div>
@@ -852,12 +860,12 @@
                 <div class="price-period">No credit card required</div>
                 <ul class="price-features">
                     <li><span class="check">✓</span> Up to 2 users</li>
-                    <li><span class="check">✓</span> 3 templates</li>
-                    <li><span class="check">✓</span> 25 workflows / month</li>
-                    <li><span class="check">✓</span> E-signatures</li>
+                    <li><span class="check">✓</span> 3 form templates</li>
+                    <li><span class="check">✓</span> 50 submissions / month</li>
+                    <li><span class="check">✓</span> Basic field types</li>
                     <li><span class="check">✓</span> Offline mode</li>
                     <li><span class="x">—</span> PDF export</li>
-                    <li><span class="x">—</span> Audit trail export</li>
+                    <li><span class="x">—</span> Approval workflows</li>
                 </ul>
                 <a href="#" class="btn btn-outline price-btn">Get Started Free</a>
             </div>
@@ -865,16 +873,16 @@
             <div class="price-card featured">
                 <div class="price-popular">Most Popular</div>
                 <h3>Professional</h3>
-                <div class="price-desc">For growing operations teams</div>
+                <div class="price-desc">For growing teams</div>
                 <div class="price-amount">$29<span>/mo</span></div>
                 <div class="price-period">per organization, billed monthly</div>
                 <ul class="price-features">
                     <li><span class="check">✓</span> Up to 10 users</li>
-                    <li><span class="check">✓</span> Unlimited templates</li>
-                    <li><span class="check">✓</span> Unlimited workflows</li>
-                    <li><span class="check">✓</span> E-signatures + MFA</li>
-                    <li><span class="check">✓</span> PDF reports with hash</li>
-                    <li><span class="check">✓</span> Full audit trail export</li>
+                    <li><span class="check">✓</span> Unlimited forms</li>
+                    <li><span class="check">✓</span> Unlimited submissions</li>
+                    <li><span class="check">✓</span> E-signatures</li>
+                    <li><span class="check">✓</span> PDF reports</li>
+                    <li><span class="check">✓</span> Approval workflows</li>
                     <li><span class="check">✓</span> Push notifications</li>
                 </ul>
                 <a href="#" class="btn btn-primary price-btn">Start 14-Day Trial</a>
@@ -882,7 +890,7 @@
 
             <div class="price-card">
                 <h3>Business</h3>
-                <div class="price-desc">For enterprises with complex needs</div>
+                <div class="price-desc">For organizations at scale</div>
                 <div class="price-amount">$99<span>/mo</span></div>
                 <div class="price-period">per organization, billed monthly</div>
                 <ul class="price-features">
@@ -902,14 +910,14 @@
 
 <!-- ─── CTA ─── -->
 <section class="cta">
-    <h2>Ready to Ditch<br>the <span>Clipboard?</span></h2>
-    <p>Join operations teams who've replaced paper checklists with tamper-evident digital workflows. Set up in under 10 minutes.</p>
+    <h2>Ready to Build<br>Your First <span>Form?</span></h2>
+    <p>Join teams who've replaced spreadsheets and paper forms with FormFlow. Create your first online work form in under 5 minutes.</p>
     <div class="cta-buttons">
         <a href="#" class="btn btn-primary" style="padding: 16px 36px; font-size: 1.1rem;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
             Download on App Store
         </a>
-        <a href="#" class="btn btn-outline" style="padding: 16px 36px; font-size: 1.1rem;">Schedule a Demo</a>
+        <a href="#" class="btn btn-outline" style="padding: 16px 36px; font-size: 1.1rem;">See It In Action</a>
     </div>
 </section>
 
