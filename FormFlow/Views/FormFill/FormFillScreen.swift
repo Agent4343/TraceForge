@@ -247,7 +247,7 @@ struct FieldRenderer: View {
         case .dateTime:
             DateInput(value: $value, includeTime: true)
         case .photo:
-            PhotoInput(value: $value, maxPhotos: field.maxPhotos ?? 3)
+            EnhancedPhotoInput(value: $value, maxPhotos: field.maxPhotos ?? 3, requireAnnotation: field.requireAnnotation ?? false)
         case .signature:
             SignatureFieldInput(value: $value, attestationText: field.attestationText)
         case .divider:
