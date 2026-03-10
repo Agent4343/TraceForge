@@ -1,22 +1,49 @@
 from datetime import datetime
+from enum import Enum
+from typing import Generic, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+T = TypeVar("T")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Wrapper for paginated list responses."""
+    items: list[T]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+
+
+class WorkflowPriority(str, Enum):
+    standard = "standard"
+    high = "high"
+    critical = "critical"
+
+
+class StepStatus(str, Enum):
+    locked = "locked"
+    todo = "todo"
+    in_progress = "in_progress"
+    signed = "signed"
+    complete = "complete"
 
 
 class StepAssignmentInput(BaseModel):
-    step_number: int
+    step_number: int = Field(ge=1, le=100)
     assigned_to: UUID
     due_date: datetime | None = None
 
 
 class WorkflowCreate(BaseModel):
     template_id: UUID
-    name: str
+    name: str = Field(min_length=1, max_length=255)
     site_id: UUID | None = None
     due_date: datetime | None = None
-    priority: str = "standard"
-    step_assignments: list[StepAssignmentInput] = []
+    priority: WorkflowPriority = WorkflowPriority.standard
+    step_assignments: list[StepAssignmentInput] = Field(default=[], max_length=50)
 
 
 class WorkflowOut(BaseModel):
@@ -56,14 +83,14 @@ class StepAssignmentOut(BaseModel):
 
 
 class StepStatusUpdate(BaseModel):
-    status: str
+    status: StepStatus
 
 
 class FormResponseInput(BaseModel):
     field_id: UUID
-    value: str
+    value: str = Field(max_length=50000)
     timestamp: datetime | None = None
-    device_id: str = ""
+    device_id: str = Field(default="", max_length=255)
 
 
 class FormResponseOut(BaseModel):
@@ -80,12 +107,16 @@ class FormResponseOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# Max 500KB base64 signature (decodes to ~375KB PNG)
+MAX_SIGNATURE_BASE64_LENGTH = 500_000
+
+
 class SignStepRequest(BaseModel):
-    signature_image_base64: str
-    attestation_text: str
+    signature_image_base64: str = Field(max_length=MAX_SIGNATURE_BASE64_LENGTH)
+    attestation_text: str = Field(min_length=1, max_length=1000)
     timestamp: datetime | None = None
-    device_id: str = ""
-    content_hash: str = ""
+    device_id: str = Field(default="", max_length=255)
+    content_hash: str = Field(default="", max_length=128)
     mfa_verified: bool = False
 
 
@@ -105,10 +136,10 @@ class SignatureOut(BaseModel):
 
 
 class HandoverRequest(BaseModel):
-    step_number: int
+    step_number: int = Field(ge=1, le=100)
     to_user_id: UUID
-    note: str
-    context_photo_base64: str | None = None
+    note: str = Field(max_length=2000)
+    context_photo_base64: str | None = Field(None, max_length=MAX_SIGNATURE_BASE64_LENGTH)
 
 
 class AuditLogOut(BaseModel):

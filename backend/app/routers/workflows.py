@@ -1,10 +1,10 @@
 import base64
-import hashlib
+import math
 from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -23,6 +23,7 @@ from app.schemas.workflow import (
     FormResponseInput,
     FormResponseOut,
     HandoverRequest,
+    PaginatedResponse,
     PDFExportOut,
     SignStepRequest,
     SignatureOut,
@@ -121,7 +122,7 @@ async def _add_audit(
 # ── Workflow CRUD ────────────────────────────────────────────────────────────
 
 
-@router.get("", response_model=list[WorkflowOut])
+@router.get("", response_model=PaginatedResponse[WorkflowOut])
 async def list_workflows(
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100),
@@ -129,12 +130,24 @@ async def list_workflows(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = select(Workflow).where(Workflow.organization_id == current_user.organization_id)
+    base = select(Workflow).where(Workflow.organization_id == current_user.organization_id)
     if status_filter:
-        query = query.where(Workflow.status == status_filter)
-    query = query.order_by(Workflow.created_at.desc()).offset((page - 1) * per_page).limit(per_page)
+        base = base.where(Workflow.status == status_filter)
+
+    count_result = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_result.scalar() or 0
+
+    query = base.order_by(Workflow.created_at.desc()).offset((page - 1) * per_page).limit(per_page)
     result = await db.execute(query)
-    return [_workflow_out(w) for w in result.scalars().all()]
+    items = [_workflow_out(w) for w in result.scalars().all()]
+
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        per_page=per_page,
+        pages=math.ceil(total / per_page) if total > 0 else 0,
+    )
 
 
 @router.get("/{workflow_id}", response_model=WorkflowOut)

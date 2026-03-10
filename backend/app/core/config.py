@@ -1,4 +1,8 @@
+import logging
+
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger("formflow")
 
 
 class Settings(BaseSettings):
@@ -45,7 +49,25 @@ class Settings(BaseSettings):
     # Base URL for links in emails
     base_url: str = "https://app.formflow.io"
 
+    # CORS — comma-separated allowed origins (use * only in development)
+    cors_origins: str = "https://app.formflow.io"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    def validate_production_config(self) -> list[str]:
+        """Return a list of warnings about insecure configuration."""
+        warnings: list[str] = []
+        if self.secret_key == "change-me-in-production":
+            warnings.append("SECRET_KEY is using the default value — set a unique secret for production")
+        if self.cors_origins == "*":
+            warnings.append("CORS_ORIGINS is set to '*' — restrict to specific domains in production")
+        if not self.debug and not self.smtp_host and not self.ses_sender_email:
+            warnings.append("No email transport configured — invite and reset emails will not be sent")
+        return warnings
 
 
 settings = Settings()
+
+# Log configuration warnings at import time
+for warning in settings.validate_production_config():
+    logger.warning("CONFIG: %s", warning)

@@ -1,19 +1,26 @@
+from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+class TemplateStatus(str, Enum):
+    draft = "draft"
+    active = "active"
+    archived = "archived"
 
 
 class TemplateCreate(BaseModel):
-    name: str
-    fields: list[dict] = []
-    steps: list[dict] = []
+    name: str = Field(min_length=1, max_length=255)
+    fields: list[dict] = Field(default=[], max_length=100)
+    steps: list[dict] = Field(default=[], max_length=50)
 
 
 class TemplateUpdate(BaseModel):
-    name: str | None = None
-    fields: list[dict] | None = None
-    steps: list[dict] | None = None
-    status: str | None = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    fields: list[dict] | None = Field(None, max_length=100)
+    steps: list[dict] | None = Field(None, max_length=50)
+    status: TemplateStatus | None = None
 
 
 class TemplateOut(BaseModel):

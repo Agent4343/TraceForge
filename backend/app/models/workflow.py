@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -10,14 +10,18 @@ from app.core.database import Base
 
 class Workflow(Base):
     __tablename__ = "workflows"
+    __table_args__ = (
+        Index("ix_workflows_org_status", "organization_id", "status"),
+        Index("ix_workflows_org_created", "organization_id", "created_at"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    organization_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
-    template_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("templates.id"), nullable=False)
+    organization_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False, index=True)
+    template_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("templates.id"), nullable=False, index=True)
     template_version: Mapped[int] = mapped_column(Integer, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     site_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
-    status: Mapped[str] = mapped_column(String(20), default="draft")
+    status: Mapped[str] = mapped_column(String(20), default="draft", index=True)
     priority: Mapped[str] = mapped_column(String(20), default="standard")
     created_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -29,12 +33,17 @@ class Workflow(Base):
 
 class StepAssignment(Base):
     __tablename__ = "step_assignments"
+    __table_args__ = (
+        UniqueConstraint("workflow_id", "step_number", name="uq_step_per_workflow"),
+        Index("ix_steps_assigned_to_status", "assigned_to", "status"),
+        Index("ix_steps_workflow", "workflow_id", "step_number"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workflow_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False)
+    workflow_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False, index=True)
     step_number: Mapped[int] = mapped_column(Integer, nullable=False)
     step_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    assigned_to: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    assigned_to: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     assigned_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="todo")
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -46,9 +55,12 @@ class StepAssignment(Base):
 
 class FormResponse(Base):
     __tablename__ = "form_responses"
+    __table_args__ = (
+        Index("ix_responses_workflow_step", "workflow_id", "step_number"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workflow_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False)
+    workflow_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False, index=True)
     step_number: Mapped[int] = mapped_column(Integer, nullable=False)
     field_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     field_label: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -60,9 +72,12 @@ class FormResponse(Base):
 
 class SignatureRecord(Base):
     __tablename__ = "signature_records"
+    __table_args__ = (
+        Index("ix_signatures_workflow_step", "workflow_id", "step_number"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workflow_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False)
+    workflow_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False, index=True)
     step_number: Mapped[int] = mapped_column(Integer, nullable=False)
     signer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     signer_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -78,9 +93,12 @@ class SignatureRecord(Base):
 
 class AuditLogEntry(Base):
     __tablename__ = "audit_log"
+    __table_args__ = (
+        Index("ix_audit_workflow_timestamp", "workflow_id", "timestamp"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workflow_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False)
+    workflow_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("workflows.id"), nullable=False, index=True)
     step_number: Mapped[int | None] = mapped_column(Integer)
     actor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     actor_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -106,6 +124,6 @@ class SyncOperation(Base):
     value: Mapped[str | None] = mapped_column(Text)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     device_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    processed: Mapped[bool] = mapped_column(Boolean, default=False)
+    processed: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error_message: Mapped[str | None] = mapped_column(Text)

@@ -1,4 +1,5 @@
 import copy
+import math
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -11,6 +12,7 @@ from app.core.deps import get_current_user
 from app.models.template import Template
 from app.models.user import User
 from app.schemas.template import TemplateCreate, TemplateOut, TemplateUpdate
+from app.schemas.workflow import PaginatedResponse
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -30,7 +32,7 @@ def _template_out(t: Template) -> TemplateOut:
     )
 
 
-@router.get("", response_model=list[TemplateOut])
+@router.get("", response_model=PaginatedResponse[TemplateOut])
 async def list_templates(
     page: int = Query(1, ge=1),
     per_page: int = Query(25, ge=1, le=100),
@@ -38,12 +40,26 @@ async def list_templates(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = select(Template).where(Template.organization_id == current_user.organization_id)
+    base = select(Template).where(Template.organization_id == current_user.organization_id)
     if status_filter:
-        query = query.where(Template.status == status_filter)
-    query = query.order_by(Template.updated_at.desc()).offset((page - 1) * per_page).limit(per_page)
+        base = base.where(Template.status == status_filter)
+
+    # Total count
+    count_result = await db.execute(select(func.count()).select_from(base.subquery()))
+    total = count_result.scalar() or 0
+
+    # Paginated items
+    query = base.order_by(Template.updated_at.desc()).offset((page - 1) * per_page).limit(per_page)
     result = await db.execute(query)
-    return [_template_out(t) for t in result.scalars().all()]
+    items = [_template_out(t) for t in result.scalars().all()]
+
+    return PaginatedResponse(
+        items=items,
+        total=total,
+        page=page,
+        per_page=per_page,
+        pages=math.ceil(total / per_page) if total > 0 else 0,
+    )
 
 
 @router.post("", response_model=TemplateOut, status_code=status.HTTP_201_CREATED)

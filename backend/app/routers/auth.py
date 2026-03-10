@@ -12,12 +12,14 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
+from app.core.security import hash_password
 from app.schemas.auth import (
     AuthResponse,
     ForgotPasswordRequest,
     LoginRequest,
     MFAVerifyRequest,
     RefreshRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserOut,
 )
@@ -114,6 +116,25 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
 
         send_password_reset_email(body.email, reset_token)
     return
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    """Verify a reset token and set a new password."""
+    payload = decode_token(body.token)
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
+
+    from uuid import UUID as _UUID
+
+    user_id = _UUID(payload["sub"])
+    result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired reset token")
+
+    user.password_hash = hash_password(body.new_password)
+    await db.commit()
 
 
 @router.post("/refresh", response_model=TokenResponse)

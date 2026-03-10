@@ -1,21 +1,27 @@
+from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
-    device_id: str | None = None
+    password: str = Field(min_length=8, max_length=128)
+    device_id: str | None = Field(None, max_length=255)
 
 
 class MFAVerifyRequest(BaseModel):
-    code: str
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
     session_token: str
 
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 class RefreshRequest(BaseModel):

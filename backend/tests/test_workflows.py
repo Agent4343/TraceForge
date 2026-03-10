@@ -61,7 +61,10 @@ async def test_list_workflows(client: AsyncClient, admin_token: str, seed_admin:
 
     resp = await client.get("/workflows", headers={"Authorization": f"Bearer {admin_token}"})
     assert resp.status_code == 200
-    assert len(resp.json()) >= 1
+    data = resp.json()
+    assert data["total"] >= 1
+    assert len(data["items"]) >= 1
+    assert data["page"] == 1
 
 
 @pytest.mark.asyncio
