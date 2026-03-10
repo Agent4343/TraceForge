@@ -1,7 +1,11 @@
+import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from app.core.config import settings
@@ -29,7 +33,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     version="1.0.0",
-    root_path="/api/v1",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -75,3 +78,28 @@ async def health():
 
     status_val = "healthy" if db_ok else "degraded"
     return {"status": status_val, "database": "connected" if db_ok else "unreachable"}
+
+
+# ── Landing page served at the root (outside /api/v1) ──
+_static_dir = Path(__file__).resolve().parent.parent / "static"
+_landing_page = _static_dir / "index.html"
+
+
+def _create_root_app() -> FastAPI:
+    """Wrap the API app so the landing page is served at / while the API stays at /api/v1."""
+    root = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+    root.mount("/api/v1", app)
+
+    if _landing_page.exists():
+        _landing_html = _landing_page.read_text()
+
+        @root.get("/", response_class=HTMLResponse)
+        async def landing():
+            return _landing_html
+
+        root.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+
+    return root
+
+
+root_app = _create_root_app()
