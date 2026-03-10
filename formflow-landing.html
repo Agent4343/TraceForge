@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FormFlow — Digital Workflows, E-Signatures & Audit Trails</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy: #0A1628;
+            --navy-light: #111D2E;
+            --navy-mid: #1A2940;
+            --cyan: #00D4FF;
+            --cyan-glow: rgba(0, 212, 255, 0.15);
+            --green: #00C896;
+            --amber: #FFB800;
+            --red: #FF4444;
+            --white: #FFFFFF;
+            --gray: #8899AA;
+            --gray-light: #C0CDD8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            background: var(--navy);
+            color: var(--white);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(10, 22, 40, 0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            padding: 0 2rem;
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 72px;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 12px;
+            font-size: 1.4rem; font-weight: 700; color: var(--white);
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--cyan), #0088CC);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; color: white;
+        }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-links a {
+            color: var(--gray-light); text-decoration: none; font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--cyan); }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 12px 28px; border-radius: 12px; font-weight: 600;
+            font-size: 1rem; text-decoration: none; cursor: pointer;
+            transition: all 0.3s; border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cyan), #0088CC);
+            color: var(--white); box-shadow: 0 4px 24px rgba(0, 212, 255, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.45);
+        }
+        .btn-outline {
+            background: transparent; color: var(--cyan);
+            border: 2px solid rgba(0, 212, 255, 0.4);
+        }
+        .btn-outline:hover {
+            background: var(--cyan-glow);
+            border-color: var(--cyan);
+        }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center;
+            padding: 120px 2rem 80px;
+            position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: -200px; right: -200px;
+            width: 600px; height: 600px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.08), transparent 70%);
+            pointer-events: none;
+        }
+        .hero-inner {
+            max-width: 1200px; margin: 0 auto; width: 100%;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+            align-items: center;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--cyan-glow); border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 100px; padding: 6px 16px 6px 8px;
+            font-size: 0.85rem; color: var(--cyan); margin-bottom: 24px;
+        }
+        .hero-badge-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--green); animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+        }
+        .hero h1 {
+            font-size: 3.5rem; line-height: 1.1; font-weight: 800;
+            margin-bottom: 24px;
+        }
+        .hero h1 span { color: var(--cyan); }
+        .hero p {
+            font-size: 1.2rem; color: var(--gray-light);
+            margin-bottom: 36px; max-width: 520px;
+        }
+        .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+
+        /* Phone mockup */
+        .phone-mockup {
+            width: 300px; margin: 0 auto;
+            background: #000; border-radius: 40px;
+            padding: 12px; position: relative;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 60px rgba(0, 212, 255, 0.1);
+        }
+        .phone-screen {
+            border-radius: 30px; overflow: hidden;
+            background: var(--navy); min-height: 580px;
+        }
+        .phone-status-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 24px 8px; font-size: 0.75rem; color: var(--white);
+        }
+        .phone-notch {
+            width: 120px; height: 28px; background: #000;
+            border-radius: 0 0 20px 20px; margin: 0 auto;
+            position: relative; top: -2px;
+        }
+        .phone-content { padding: 8px 16px 20px; }
+        .phone-header {
+            font-size: 1.3rem; font-weight: 700; margin-bottom: 4px;
+        }
+        .phone-subtitle {
+            font-size: 0.8rem; color: var(--gray); margin-bottom: 16px;
+        }
+        .phone-tabs {
+            display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto;
+        }
+        .phone-tab {
+            padding: 6px 12px; border-radius: 8px; font-size: 0.7rem;
+            font-weight: 600; white-space: nowrap;
+        }
+        .phone-tab.active {
+            background: var(--cyan); color: var(--navy);
+        }
+        .phone-tab:not(.active) {
+            background: var(--navy-mid); color: var(--gray);
+        }
+        .task-card {
+            background: var(--navy-light); border-radius: 14px;
+            padding: 14px; margin-bottom: 10px;
+            border-left: 3px solid var(--cyan);
+        }
+        .task-card.amber { border-left-color: var(--amber); }
+        .task-card.green { border-left-color: var(--green); }
+        .task-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+        .task-meta {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.7rem; color: var(--gray);
+        }
+        .task-badge {
+            padding: 2px 8px; border-radius: 6px; font-size: 0.65rem;
+            font-weight: 600;
+        }
+        .badge-progress { background: rgba(0, 212, 255, 0.15); color: var(--cyan); }
+        .badge-due { background: rgba(255, 184, 0, 0.15); color: var(--amber); }
+        .badge-complete { background: rgba(0, 200, 150, 0.15); color: var(--green); }
+        .task-progress-bar {
+            height: 3px; background: var(--navy-mid); border-radius: 2px;
+            margin-top: 8px; overflow: hidden;
+        }
+        .task-progress-fill {
+            height: 100%; border-radius: 2px;
+            background: linear-gradient(90deg, var(--cyan), #0088CC);
+        }
+        .phone-nav-bar {
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 12px 0 8px;
+            border-top: 1px solid var(--navy-mid);
+            margin-top: 12px;
+        }
+        .phone-nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 2px; font-size: 0.6rem; color: var(--gray);
+        }
+        .phone-nav-item.active { color: var(--cyan); }
+        .phone-nav-icon { font-size: 1.1rem; }
+
+        /* ── INDUSTRIES ── */
+        .industries {
+            padding: 40px 2rem 80px;
+            background: linear-gradient(180deg, var(--navy), var(--navy-light));
+        }
+        .industries-inner {
+            max-width: 1000px; margin: 0 auto; text-align: center;
+        }
+        .industries-label {
+            font-size: 0.85rem; color: var(--gray); text-transform: uppercase;
+            letter-spacing: 3px; margin-bottom: 24px;
+        }
+        .industry-logos {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 32px 48px; opacity: 0.5;
+        }
+        .industry-item {
+            font-size: 1rem; color: var(--gray-light); font-weight: 500;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .industry-icon { font-size: 1.4rem; }
+
+        /* ── FEATURES ── */
+        .features {
+            padding: 100px 2rem;
+            background: var(--navy-light);
+        }
+        .section-inner { max-width: 1200px; margin: 0 auto; }
+        .section-label {
+            font-size: 0.85rem; color: var(--cyan); text-transform: uppercase;
+            letter-spacing: 3px; margin-bottom: 12px; text-align: center;
+        }
+        .section-title {
+            font-size: 2.5rem; font-weight: 800; text-align: center;
+            margin-bottom: 16px;
+        }
+        .section-subtitle {
+            font-size: 1.1rem; color: var(--gray-light); text-align: center;
+            max-width: 600px; margin: 0 auto 60px;
+        }
+        .feature-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .feature-card {
+            background: var(--navy); border-radius: 20px;
+            padding: 36px 28px; border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.3s;
+        }
+        .feature-card:hover {
+            border-color: rgba(0, 212, 255, 0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+        .feature-icon {
+            width: 56px; height: 56px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; margin-bottom: 20px;
+        }
+        .fi-cyan { background: rgba(0, 212, 255, 0.12); }
+        .fi-green { background: rgba(0, 200, 150, 0.12); }
+        .fi-amber { background: rgba(255, 184, 0, 0.12); }
+        .fi-red { background: rgba(255, 68, 68, 0.12); }
+        .fi-purple { background: rgba(160, 100, 255, 0.12); }
+        .fi-blue { background: rgba(60, 130, 255, 0.12); }
+        .feature-card h3 {
+            font-size: 1.15rem; font-weight: 700; margin-bottom: 10px;
+        }
+        .feature-card p {
+            font-size: 0.95rem; color: var(--gray-light); line-height: 1.6;
+        }
+
+        /* ── HOW IT WORKS ── */
+        .how-it-works {
+            padding: 100px 2rem;
+            background: var(--navy);
+        }
+        .steps-container {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 24px; margin-top: 60px; position: relative;
+        }
+        .steps-container::before {
+            content: ''; position: absolute;
+            top: 44px; left: 12%; right: 12%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--cyan), var(--green));
+            opacity: 0.3;
+        }
+        .step-card { text-align: center; position: relative; }
+        .step-number {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), #0088CC);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.2rem; margin: 0 auto 20px;
+            position: relative; z-index: 1;
+        }
+        .step-card h3 {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;
+        }
+        .step-card p {
+            font-size: 0.9rem; color: var(--gray-light);
+        }
+
+        /* ── SIGNATURE SECTION ── */
+        .signature-section {
+            padding: 100px 2rem;
+            background: var(--navy-light);
+        }
+        .sig-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+            align-items: center; max-width: 1200px; margin: 0 auto;
+        }
+        .sig-demo {
+            background: var(--navy); border-radius: 24px;
+            padding: 32px; border: 1px solid rgba(0, 212, 255, 0.15);
+        }
+        .sig-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px;
+        }
+        .sig-header h4 { font-size: 1rem; font-weight: 600; }
+        .sig-verified {
+            display: flex; align-items: center; gap: 6px;
+            color: var(--green); font-size: 0.8rem; font-weight: 600;
+        }
+        .sig-canvas {
+            width: 100%; height: 160px; background: var(--navy-mid);
+            border-radius: 12px; border: 2px dashed rgba(0, 212, 255, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 16px; position: relative; overflow: hidden;
+        }
+        .sig-line {
+            position: absolute; bottom: 50px; left: 30px; right: 30px;
+            height: 1px; background: rgba(255,255,255,0.1);
+        }
+        .sig-scribble {
+            font-family: 'Brush Script MT', 'Segoe Script', cursive;
+            font-size: 2.5rem; color: var(--white); opacity: 0.9;
+            transform: rotate(-3deg);
+        }
+        .sig-meta {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+        }
+        .sig-meta-item {
+            background: var(--navy-mid); border-radius: 10px; padding: 12px;
+        }
+        .sig-meta-label {
+            font-size: 0.7rem; color: var(--gray); text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 4px;
+        }
+        .sig-meta-value { font-size: 0.85rem; font-weight: 600; }
+        .sig-hash {
+            margin-top: 16px; padding: 12px; background: var(--navy-mid);
+            border-radius: 10px; font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.72rem; color: var(--cyan); word-break: break-all;
+            line-height: 1.5;
+        }
+        .sig-hash-label {
+            font-size: 0.65rem; color: var(--gray); text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 6px; font-family: -apple-system, system-ui, sans-serif;
+        }
+        .sig-text h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 20px; }
+        .sig-text h2 span { color: var(--cyan); }
+        .sig-text p {
+            font-size: 1.05rem; color: var(--gray-light);
+            margin-bottom: 24px; line-height: 1.7;
+        }
+        .sig-checks { list-style: none; }
+        .sig-checks li {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 8px 0; font-size: 0.95rem; color: var(--gray-light);
+        }
+        .sig-check-icon { color: var(--green); font-size: 1.1rem; flex-shrink: 0; }
+
+        /* ── PRICING ── */
+        .pricing {
+            padding: 100px 2rem;
+            background: var(--navy);
+        }
+        .pricing-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 24px; max-width: 1000px; margin: 0 auto;
+        }
+        .price-card {
+            background: var(--navy-light); border-radius: 24px;
+            padding: 40px 32px; border: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+        }
+        .price-card.featured {
+            border-color: var(--cyan);
+            box-shadow: 0 0 60px rgba(0, 212, 255, 0.1);
+        }
+        .price-popular {
+            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--cyan), #0088CC);
+            padding: 6px 20px; border-radius: 100px; font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .price-card h3 {
+            font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;
+        }
+        .price-card .price-desc {
+            font-size: 0.9rem; color: var(--gray); margin-bottom: 24px;
+        }
+        .price-amount {
+            font-size: 3rem; font-weight: 800; margin-bottom: 4px;
+        }
+        .price-amount span { font-size: 1rem; color: var(--gray); font-weight: 400; }
+        .price-period { font-size: 0.85rem; color: var(--gray); margin-bottom: 32px; }
+        .price-features { list-style: none; margin-bottom: 32px; }
+        .price-features li {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 0; font-size: 0.9rem; color: var(--gray-light);
+        }
+        .price-features .check { color: var(--green); }
+        .price-features .x { color: var(--gray); opacity: 0.4; }
+        .price-btn { width: 100%; text-align: center; justify-content: center; }
+
+        /* ── AUDIT TRAIL SECTION ── */
+        .audit-section {
+            padding: 100px 2rem;
+            background: var(--navy-light);
+        }
+        .audit-grid {
+            display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px;
+            align-items: center; max-width: 1200px; margin: 0 auto;
+        }
+        .audit-demo {
+            background: var(--navy); border-radius: 20px;
+            padding: 24px; border: 1px solid rgba(255,255,255,0.06);
+        }
+        .audit-item {
+            display: flex; gap: 16px; padding: 14px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .audit-item:last-child { border-bottom: none; }
+        .audit-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            margin-top: 6px; flex-shrink: 0;
+        }
+        .audit-dot.cyan { background: var(--cyan); }
+        .audit-dot.green { background: var(--green); }
+        .audit-dot.amber { background: var(--amber); }
+        .audit-action { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
+        .audit-detail { font-size: 0.8rem; color: var(--gray); }
+        .audit-time { font-size: 0.75rem; color: var(--gray); margin-top: 2px; font-family: monospace; }
+
+        /* ── CTA ── */
+        .cta {
+            padding: 120px 2rem;
+            background: var(--navy);
+            text-align: center;
+            position: relative;
+        }
+        .cta::before {
+            content: ''; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 600px; height: 600px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.06), transparent 70%);
+        }
+        .cta h2 {
+            font-size: 2.8rem; font-weight: 800; margin-bottom: 20px;
+            position: relative;
+        }
+        .cta h2 span { color: var(--cyan); }
+        .cta p {
+            font-size: 1.15rem; color: var(--gray-light);
+            max-width: 550px; margin: 0 auto 40px; position: relative;
+        }
+        .cta-buttons {
+            display: flex; gap: 16px; justify-content: center;
+            position: relative;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            padding: 40px 2rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: var(--navy);
+        }
+        .footer-inner {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .footer-left { font-size: 0.85rem; color: var(--gray); }
+        .footer-links { display: flex; gap: 24px; }
+        .footer-links a {
+            font-size: 0.85rem; color: var(--gray); text-decoration: none;
+        }
+        .footer-links a:hover { color: var(--cyan); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 960px) {
+            .hero-inner { grid-template-columns: 1fr; text-align: center; }
+            .hero p { margin: 0 auto 36px; }
+            .hero-buttons { justify-content: center; }
+            .phone-mockup { width: 260px; margin-top: 40px; }
+            .feature-grid { grid-template-columns: 1fr 1fr; }
+            .steps-container { grid-template-columns: 1fr 1fr; }
+            .steps-container::before { display: none; }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+            .sig-grid, .audit-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.5rem; }
+            .nav-links { display: none; }
+        }
+        @media (max-width: 600px) {
+            .feature-grid { grid-template-columns: 1fr; }
+            .steps-container { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2rem; }
+            .section-title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+    <div class="nav-inner">
+        <a href="#" class="logo">
+            <div class="logo-icon">⬡</div>
+            FormFlow
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.9rem;">Request Demo</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+    <div class="hero-inner">
+        <div>
+            <div class="hero-badge">
+                <div class="hero-badge-dot"></div>
+                Now available on iOS
+            </div>
+            <h1>Replace Paper<br>Checklists with<br><span>Tamper-Evident</span><br>Digital Workflows</h1>
+            <p>Multi-step, multi-person approval workflows with legally-defensible e-signatures, full audit trails, and offline-first mobile access — built for the field.</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                    Download on App Store
+                </a>
+                <a href="#" class="btn btn-outline">Request a Demo</a>
+            </div>
+        </div>
+
+        <!-- Phone Mockup -->
+        <div>
+            <div class="phone-mockup">
+                <div class="phone-screen">
+                    <div class="phone-notch"></div>
+                    <div class="phone-status-bar">
+                        <span>9:41</span>
+                        <span>⚡ 📶</span>
+                    </div>
+                    <div class="phone-content">
+                        <div class="phone-header">My Tasks</div>
+                        <div class="phone-subtitle">3 tasks assigned to you</div>
+                        <div class="phone-tabs">
+                            <div class="phone-tab active">All</div>
+                            <div class="phone-tab">Due Today</div>
+                            <div class="phone-tab">Overdue</div>
+                            <div class="phone-tab">Handover</div>
+                        </div>
+
+                        <div class="task-card">
+                            <div class="task-title">Pre-Shift Safety Inspection</div>
+                            <div class="task-meta">
+                                <span>Step 2 of 4</span>
+                                <span class="task-badge badge-progress">In Progress</span>
+                            </div>
+                            <div class="task-progress-bar">
+                                <div class="task-progress-fill" style="width: 50%"></div>
+                            </div>
+                        </div>
+
+                        <div class="task-card amber">
+                            <div class="task-title">Valve Pressure Check — Unit 7</div>
+                            <div class="task-meta">
+                                <span>Due in 2h</span>
+                                <span class="task-badge badge-due">Due Soon</span>
+                            </div>
+                            <div class="task-progress-bar">
+                                <div class="task-progress-fill" style="width: 25%; background: var(--amber);"></div>
+                            </div>
+                        </div>
+
+                        <div class="task-card green">
+                            <div class="task-title">Permit to Work — Hot Work</div>
+                            <div class="task-meta">
+                                <span>Completed</span>
+                                <span class="task-badge badge-complete">Signed ✓</span>
+                            </div>
+                            <div class="task-progress-bar">
+                                <div class="task-progress-fill" style="width: 100%; background: var(--green);"></div>
+                            </div>
+                        </div>
+
+                        <div class="phone-nav-bar">
+                            <div class="phone-nav-item active">
+                                <span class="phone-nav-icon">☑</span>
+                                Tasks
+                            </div>
+                            <div class="phone-nav-item">
+                                <span class="phone-nav-icon">⬡</span>
+                                Workflows
+                            </div>
+                            <div class="phone-nav-item">
+                                <span class="phone-nav-icon">▤</span>
+                                Templates
+                            </div>
+                            <div class="phone-nav-item">
+                                <span class="phone-nav-icon">◔</span>
+                                Audit
+                            </div>
+                            <div class="phone-nav-item">
+                                <span class="phone-nav-icon">◉</span>
+                                Profile
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── INDUSTRIES ─── -->
+<section class="industries">
+    <div class="industries-inner">
+        <div class="industries-label">Trusted by operations teams across</div>
+        <div class="industry-logos">
+            <div class="industry-item"><span class="industry-icon">🛢</span> Oil & Gas</div>
+            <div class="industry-item"><span class="industry-icon">🏗</span> Construction</div>
+            <div class="industry-item"><span class="industry-icon">⚡</span> Energy & Utilities</div>
+            <div class="industry-item"><span class="industry-icon">🚢</span> Maritime</div>
+            <div class="industry-item"><span class="industry-icon">🏭</span> Manufacturing</div>
+            <div class="industry-item"><span class="industry-icon">✈️</span> Aviation</div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── FEATURES ─── -->
+<section class="features" id="features">
+    <div class="section-inner">
+        <div class="section-label">Features</div>
+        <div class="section-title">Everything You Need to Go Paperless</div>
+        <div class="section-subtitle">Built for field workers wearing gloves, working offline, in bright sunlight — not for people sitting at desks.</div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon fi-cyan">📋</div>
+                <h3>Multi-Step Workflows</h3>
+                <p>Create templates with multiple steps assigned to different roles. Each step auto-locks after signing — no tampering possible.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-green">✍️</div>
+                <h3>Legal E-Signatures</h3>
+                <p>SHA-256 hashed signatures bound to verified identities, timestamps, and IP addresses. Holds up to regulatory audit.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-amber">📡</div>
+                <h3>Offline-First</h3>
+                <p>Complete forms with zero connectivity. Data syncs automatically when back online. Never lose work in the field.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-purple">🔄</div>
+                <h3>Shift Handover</h3>
+                <p>Transfer tasks between shifts with mandatory context notes and photos. The next person knows exactly what's happening.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-red">📊</div>
+                <h3>Audit Trail</h3>
+                <p>Every action logged with immutable timestamps. Export to CSV or PDF. Complete traceability for compliance officers.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-blue">📄</div>
+                <h3>PDF Reports</h3>
+                <p>Auto-generate professional PDF reports with signatures, responses, and a cryptographic verification hash in the footer.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section class="how-it-works" id="how-it-works">
+    <div class="section-inner">
+        <div class="section-label">How It Works</div>
+        <div class="section-title">From Paper to Digital in Minutes</div>
+        <div class="section-subtitle">No training required. If your team can use a phone, they can use FormFlow.</div>
+
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Build a Template</h3>
+                <p>Drag and drop fields — text, numbers, yes/no, photos, signatures, dropdowns — into multi-step templates.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Assign & Deploy</h3>
+                <p>Create a workflow from the template. Assign each step to the right person. They get a push notification instantly.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Complete & Sign</h3>
+                <p>Workers fill out their step on-site — online or offline. Sign with a finger. The step locks permanently.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Export & Audit</h3>
+                <p>Download a tamper-evident PDF with all signatures and a full audit log. Ready for any regulator or inspector.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── SIGNATURE DEMO ─── -->
+<section class="signature-section">
+    <div class="sig-grid">
+        <div class="sig-demo">
+            <div class="sig-header">
+                <h4>✍️ Signature Capture</h4>
+                <div class="sig-verified">✓ Verified</div>
+            </div>
+            <div class="sig-canvas">
+                <div class="sig-line"></div>
+                <div class="sig-scribble">J. Martinez</div>
+            </div>
+            <div class="sig-meta">
+                <div class="sig-meta-item">
+                    <div class="sig-meta-label">Signer</div>
+                    <div class="sig-meta-value">Jorge Martinez</div>
+                </div>
+                <div class="sig-meta-item">
+                    <div class="sig-meta-label">Timestamp</div>
+                    <div class="sig-meta-value">2026-03-10 14:32 UTC</div>
+                </div>
+                <div class="sig-meta-item">
+                    <div class="sig-meta-label">MFA Status</div>
+                    <div class="sig-meta-value" style="color: var(--green);">✓ Verified</div>
+                </div>
+                <div class="sig-meta-item">
+                    <div class="sig-meta-label">IP Address</div>
+                    <div class="sig-meta-value">192.168.4.107</div>
+                </div>
+            </div>
+            <div class="sig-hash">
+                <div class="sig-hash-label">SHA-256 Content Hash</div>
+                a7f3c9e1b4d82f6a0e5c3d91b7f24a8e6c0d5b3f9a2e7c4d1b8f6a3e0c5d9b2f
+            </div>
+        </div>
+
+        <div class="sig-text">
+            <h2>Signatures That<br><span>Hold Up in Court</span></h2>
+            <p>Every signature is cryptographically bound to the signer's verified identity, the exact content they signed, and a precise timestamp. No one can claim "I didn't sign that."</p>
+            <ul class="sig-checks">
+                <li><span class="sig-check-icon">✓</span> SHA-256 hash links signature to content — any change invalidates it</li>
+                <li><span class="sig-check-icon">✓</span> Optional MFA verification at time of signing</li>
+                <li><span class="sig-check-icon">✓</span> IP address and device metadata captured automatically</li>
+                <li><span class="sig-check-icon">✓</span> Immutable audit log — no deletions, no edits, no exceptions</li>
+                <li><span class="sig-check-icon">✓</span> Face ID / Touch ID biometric unlock for added security</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ─── AUDIT TRAIL ─── -->
+<section class="audit-section">
+    <div class="audit-grid">
+        <div class="audit-demo">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h4 style="font-size: 1.1rem;">Live Audit Trail</h4>
+                <span style="font-size: 0.8rem; color: var(--gray);">Workflow #WF-2847</span>
+            </div>
+            <div class="audit-item">
+                <div class="audit-dot green"></div>
+                <div>
+                    <div class="audit-action">Step 3 signed by Jorge Martinez</div>
+                    <div class="audit-detail">Hot Work Permit — Final approval with e-signature</div>
+                    <div class="audit-time">2026-03-10T14:32:18.442Z</div>
+                </div>
+            </div>
+            <div class="audit-item">
+                <div class="audit-dot cyan"></div>
+                <div>
+                    <div class="audit-action">Field "Gas Reading" updated</div>
+                    <div class="audit-detail">Value: 0.3% LEL — within safe range</div>
+                    <div class="audit-time">2026-03-10T14:28:05.119Z</div>
+                </div>
+            </div>
+            <div class="audit-item">
+                <div class="audit-dot amber"></div>
+                <div>
+                    <div class="audit-action">Shift handover initiated</div>
+                    <div class="audit-detail">From: Sarah Chen → To: Jorge Martinez — "Valve 7B leak resolved, monitoring…"</div>
+                    <div class="audit-time">2026-03-10T06:02:41.887Z</div>
+                </div>
+            </div>
+            <div class="audit-item">
+                <div class="audit-dot green"></div>
+                <div>
+                    <div class="audit-action">Step 2 signed by Sarah Chen</div>
+                    <div class="audit-detail">Site Inspection — All items passed, 3 photos attached</div>
+                    <div class="audit-time">2026-03-10T05:45:22.310Z</div>
+                </div>
+            </div>
+            <div class="audit-item">
+                <div class="audit-dot cyan"></div>
+                <div>
+                    <div class="audit-action">Workflow created</div>
+                    <div class="audit-detail">Template: Hot Work Permit v3 — 4 steps, 3 assigned users</div>
+                    <div class="audit-time">2026-03-09T22:10:00.000Z</div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="section-label" style="text-align: left;">Compliance Ready</div>
+            <h2 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 20px;">Every Action<br>Recorded. <span style="color: var(--cyan);">Forever.</span></h2>
+            <p style="font-size: 1.05rem; color: var(--gray-light); margin-bottom: 24px; line-height: 1.7;">
+                When the inspector asks "who did what, and when?" — you have the answer in seconds. Not days of digging through filing cabinets.
+            </p>
+            <p style="font-size: 1.05rem; color: var(--gray-light); line-height: 1.7;">
+                Export as CSV for analysis, or include the full trail in your tamper-evident PDF. Every field change, every signature, every handover — timestamped and immutable.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ─── PRICING ─── -->
+<section class="pricing" id="pricing">
+    <div class="section-inner">
+        <div class="section-label">Pricing</div>
+        <div class="section-title">Simple, Transparent Pricing</div>
+        <div class="section-subtitle">Start free. Scale when you're ready. No surprises.</div>
+
+        <div class="pricing-grid">
+            <div class="price-card">
+                <h3>Starter</h3>
+                <div class="price-desc">For small teams getting started</div>
+                <div class="price-amount">Free</div>
+                <div class="price-period">No credit card required</div>
+                <ul class="price-features">
+                    <li><span class="check">✓</span> Up to 2 users</li>
+                    <li><span class="check">✓</span> 3 templates</li>
+                    <li><span class="check">✓</span> 25 workflows / month</li>
+                    <li><span class="check">✓</span> E-signatures</li>
+                    <li><span class="check">✓</span> Offline mode</li>
+                    <li><span class="x">—</span> PDF export</li>
+                    <li><span class="x">—</span> Audit trail export</li>
+                </ul>
+                <a href="#" class="btn btn-outline price-btn">Get Started Free</a>
+            </div>
+
+            <div class="price-card featured">
+                <div class="price-popular">Most Popular</div>
+                <h3>Professional</h3>
+                <div class="price-desc">For growing operations teams</div>
+                <div class="price-amount">$29<span>/mo</span></div>
+                <div class="price-period">per organization, billed monthly</div>
+                <ul class="price-features">
+                    <li><span class="check">✓</span> Up to 10 users</li>
+                    <li><span class="check">✓</span> Unlimited templates</li>
+                    <li><span class="check">✓</span> Unlimited workflows</li>
+                    <li><span class="check">✓</span> E-signatures + MFA</li>
+                    <li><span class="check">✓</span> PDF reports with hash</li>
+                    <li><span class="check">✓</span> Full audit trail export</li>
+                    <li><span class="check">✓</span> Push notifications</li>
+                </ul>
+                <a href="#" class="btn btn-primary price-btn">Start 14-Day Trial</a>
+            </div>
+
+            <div class="price-card">
+                <h3>Business</h3>
+                <div class="price-desc">For enterprises with complex needs</div>
+                <div class="price-amount">$99<span>/mo</span></div>
+                <div class="price-period">per organization, billed monthly</div>
+                <ul class="price-features">
+                    <li><span class="check">✓</span> Unlimited users</li>
+                    <li><span class="check">✓</span> Everything in Pro</li>
+                    <li><span class="check">✓</span> Admin panel & roles</li>
+                    <li><span class="check">✓</span> Priority support</li>
+                    <li><span class="check">✓</span> Custom branding</li>
+                    <li><span class="check">✓</span> SSO integration</li>
+                    <li><span class="check">✓</span> Dedicated onboarding</li>
+                </ul>
+                <a href="#" class="btn btn-outline price-btn">Contact Sales</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section class="cta">
+    <h2>Ready to Ditch<br>the <span>Clipboard?</span></h2>
+    <p>Join operations teams who've replaced paper checklists with tamper-evident digital workflows. Set up in under 10 minutes.</p>
+    <div class="cta-buttons">
+        <a href="#" class="btn btn-primary" style="padding: 16px 36px; font-size: 1.1rem;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Download on App Store
+        </a>
+        <a href="#" class="btn btn-outline" style="padding: 16px 36px; font-size: 1.1rem;">Schedule a Demo</a>
+    </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-left">
+            &copy; 2026 FormFlow. All rights reserved.
+        </div>
+        <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Support</a>
+            <a href="#">Contact</a>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
