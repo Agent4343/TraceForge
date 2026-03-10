@@ -23,6 +23,9 @@ enum FFColors {
     // Tab bar
     static let tabInactive = Color(hex: "4A6080")
 
+    // Audit trail
+    static let auditFieldChange = Color(hex: "4488FF")
+
     // Role colors
     static let roleAdmin = Color(hex: "FF6B6B")
     static let roleManager = Color(hex: "FFB800")

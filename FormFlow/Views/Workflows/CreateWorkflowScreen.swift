@@ -204,7 +204,8 @@ struct CreateWorkflowScreen: View {
             pdfHash: nil
         )
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        Task {
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
             appState.workflows.insert(newWorkflow, at: 0)
             isCreating = false
             dismiss()

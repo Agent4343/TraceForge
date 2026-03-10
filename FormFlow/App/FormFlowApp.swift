@@ -90,14 +90,13 @@ struct RootView: View {
         .animation(reduceMotion ? .none : .easeInOut(duration: 0.4), value: showSplash)
         .animation(reduceMotion ? .none : .easeInOut(duration: 0.4), value: appState.isAuthenticated)
         .animation(reduceMotion ? .none : .easeInOut(duration: 0.3), value: needsBiometricUnlock)
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                withAnimation {
-                    showSplash = false
-                }
-                if appState.requireBiometrics && biometricService.isAvailable {
-                    needsBiometricUnlock = true
-                }
+        .task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            withAnimation {
+                showSplash = false
+            }
+            if appState.requireBiometrics && biometricService.isAvailable {
+                needsBiometricUnlock = true
             }
         }
     }

@@ -153,11 +153,18 @@ class StoreKitService: ObservableObject {
     }
 
     private func listenForTransactions() -> Task<Void, Error> {
-        Task.detached {
+        Task.detached { [weak self] in
             for await result in Transaction.updates {
-                guard case .verified(let transaction) = result else { continue }
-                await self.updatePurchasedProducts()
-                await transaction.finish()
+                do {
+                    guard case .verified(let transaction) = result else {
+                        print("[FormFlow] Unverified transaction received, skipping")
+                        continue
+                    }
+                    await self?.updatePurchasedProducts()
+                    await transaction.finish()
+                } catch {
+                    print("[FormFlow] Transaction listener error: \(error.localizedDescription)")
+                }
             }
         }
     }

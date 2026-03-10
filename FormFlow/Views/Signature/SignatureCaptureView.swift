@@ -338,14 +338,30 @@ struct StepSignatureModal: View {
     private func submitSignature() {
         guard let user = appState.currentUser,
               let image = signatureImage,
-              let imageData = image.pngData() else { return }
+              let imageData = image.pngData() else {
+            print("[FormFlow] Signature submission failed: missing user, image, or image data")
+            return
+        }
 
-        let _ = SignatureService.shared.createSignatureRecord(
+        let record = SignatureService.shared.createSignatureRecord(
             workflowId: workflowId,
             stepNumber: stepNumber,
             signer: user,
             signatureImageData: imageData,
             attestationText: defaultAttestation
+        )
+
+        // Verify signature hash was generated
+        guard !record.contentHash.isEmpty else {
+            print("[FormFlow] Signature hash generation failed")
+            return
+        }
+
+        // Queue for sync
+        SyncService.shared.queueOperation(
+            type: .signStep,
+            entityType: "signature",
+            entityId: record.id
         )
 
         onComplete()

@@ -11,6 +11,8 @@ class PersistenceController {
         container.viewContext
     }
 
+    @Published var loadError: Error?
+
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "FormFlow")
 
@@ -18,9 +20,21 @@ class PersistenceController {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         }
 
-        container.loadPersistentStores { _, error in
-            if let error = error as NSError? {
-                fatalError("Core Data failed to load: \(error), \(error.userInfo)")
+        container.loadPersistentStores { [weak self] _, error in
+            if let error = error {
+                // Log the error and set state — do NOT crash in production
+                print("[FormFlow] Core Data failed to load: \(error.localizedDescription)")
+                self?.loadError = error
+
+                // Attempt recovery: destroy and recreate the store
+                if let storeURL = self?.container.persistentStoreDescriptions.first?.url {
+                    try? FileManager.default.removeItem(at: storeURL)
+                    self?.container.loadPersistentStores { _, retryError in
+                        if let retryError = retryError {
+                            print("[FormFlow] Core Data recovery failed: \(retryError.localizedDescription)")
+                        }
+                    }
+                }
             }
         }
 

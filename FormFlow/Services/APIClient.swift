@@ -12,7 +12,11 @@ actor APIClient {
     private let maxRetries = 3
 
     private init() {
-        self.baseURL = URL(string: "https://api.formflow.io/api/v1")!
+        // swiftlint:disable:next force_unwrapping — URL is a compile-time constant
+        guard let url = URL(string: "https://api.formflow.io/api/v1") else {
+            preconditionFailure("Invalid base URL constant")
+        }
+        self.baseURL = url
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60

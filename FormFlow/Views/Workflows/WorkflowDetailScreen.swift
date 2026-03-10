@@ -174,7 +174,8 @@ struct WorkflowDetailScreen: View {
         isGeneratingPDF = true
         guard let template = template, let org = appState.organization else { return }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
             let data = PDFService.shared.generatePDF(
                 workflow: workflow,
                 template: template,
@@ -292,7 +293,7 @@ struct AuditEntryRow: View {
     private var borderColor: Color {
         switch entry.action.category {
         case .signature: return FFColors.accentCyan
-        case .fieldChange: return Color(hex: "4488FF")
+        case .fieldChange: return FFColors.auditFieldChange
         case .handover: return FFColors.warning
         case .system: return FFColors.textSecondary
         case .all: return FFColors.textSecondary

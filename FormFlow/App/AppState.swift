@@ -42,7 +42,8 @@ class AppState: ObservableObject {
         authError = nil
 
         // Simulate network delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             guard let self else { return }
             self.isLoading = false
 

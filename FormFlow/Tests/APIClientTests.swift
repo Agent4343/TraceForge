@@ -14,11 +14,26 @@ final class APIClientTests: XCTestCase {
         XCTAssertNotNil(APIError.invalidResponse.errorDescription)
         XCTAssertNotNil(APIError.timeout.errorDescription)
 
-        // Error messages should be user-friendly
-        XCTAssertTrue(APIError.unauthorized.errorDescription!.contains("session"))
-        XCTAssertTrue(APIError.forbidden.errorDescription!.contains("permission"))
-        XCTAssertTrue(APIError.tooManyRequests.errorDescription!.contains("wait"))
-        XCTAssertTrue(APIError.serverError(500).errorDescription!.contains("saved locally"))
+        // Error messages should be user-friendly (safe unwrap via guard)
+        guard let unauthorizedDesc = APIError.unauthorized.errorDescription else {
+            XCTFail("unauthorized should have error description"); return
+        }
+        XCTAssertTrue(unauthorizedDesc.contains("session"))
+
+        guard let forbiddenDesc = APIError.forbidden.errorDescription else {
+            XCTFail("forbidden should have error description"); return
+        }
+        XCTAssertTrue(forbiddenDesc.contains("permission"))
+
+        guard let rateLimitDesc = APIError.tooManyRequests.errorDescription else {
+            XCTFail("tooManyRequests should have error description"); return
+        }
+        XCTAssertTrue(rateLimitDesc.contains("wait"))
+
+        guard let serverDesc = APIError.serverError(500).errorDescription else {
+            XCTFail("serverError should have error description"); return
+        }
+        XCTAssertTrue(serverDesc.contains("saved locally"))
     }
 
     // MARK: - HTTPMethod Tests

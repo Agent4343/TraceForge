@@ -114,20 +114,20 @@ struct PhotoLibraryPicker: UIViewControllerRepresentable {
     }
 
     class Coordinator: NSObject, PHPickerViewControllerDelegate {
-        let parent: PhotoLibraryPicker
+        weak var parent: PhotoLibraryPicker?
 
         init(_ parent: PhotoLibraryPicker) {
             self.parent = parent
         }
 
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-            parent.dismiss()
+            parent?.dismiss()
 
             for result in results {
-                result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
+                result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
                     if let image = image as? UIImage {
-                        DispatchQueue.main.async {
-                            self.parent.selectedImages.append(image)
+                        Task { @MainActor [weak self] in
+                            self?.parent?.selectedImages.append(image)
                         }
                     }
                 }

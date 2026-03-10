@@ -24,12 +24,10 @@ class SyncService: ObservableObject {
 
     private func startNetworkMonitoring() {
         monitor.pathUpdateHandler = { [weak self] path in
-            DispatchQueue.main.async {
+            Task { @MainActor [weak self] in
                 self?.isOnline = path.status == .satisfied
                 if path.status == .satisfied {
-                    Task { [weak self] in
-                        await self?.syncNow()
-                    }
+                    await self?.syncNow()
                 }
             }
         }
@@ -38,7 +36,7 @@ class SyncService: ObservableObject {
 
     private func startPeriodicSync() {
         syncTimer = Timer.scheduledTimer(withTimeInterval: 90, repeats: true) { [weak self] _ in
-            Task { [weak self] in
+            Task { @MainActor [weak self] in
                 await self?.syncNow()
             }
         }

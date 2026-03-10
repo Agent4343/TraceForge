@@ -72,9 +72,13 @@ extension CDUser {
     }
 
     func toDomain() -> FFUser {
-        FFUser(
+        let parsedRole = UserRole(rawValue: role)
+        if parsedRole == nil {
+            print("[FormFlow] CDUser toDomain: unknown role '\(role)' for user \(id), defaulting to .worker")
+        }
+        return FFUser(
             id: id, organizationId: organizationId, email: email,
-            displayName: displayName, role: UserRole(rawValue: role) ?? .worker,
+            displayName: displayName, role: parsedRole ?? .worker,
             mfaEnabled: mfaEnabled, deviceId: deviceId, isActive: isActive,
             createdAt: createdAt, lastActiveAt: lastActiveAt
         )
@@ -177,11 +181,19 @@ extension CDWorkflowInstance {
     }
 
     func toDomain() -> WorkflowInstance {
-        WorkflowInstance(
+        let parsedStatus = WorkflowStatus(rawValue: status)
+        let parsedPriority = WorkflowPriority(rawValue: priority)
+        if parsedStatus == nil {
+            print("[FormFlow] CDWorkflowInstance toDomain: unknown status '\(status)' for workflow \(id), defaulting to .draft")
+        }
+        if parsedPriority == nil {
+            print("[FormFlow] CDWorkflowInstance toDomain: unknown priority '\(priority)' for workflow \(id), defaulting to .standard")
+        }
+        return WorkflowInstance(
             id: id, organizationId: organizationId, templateId: templateId,
             templateVersion: Int(templateVersion), name: name, siteId: siteId,
-            status: WorkflowStatus(rawValue: status) ?? .draft,
-            priority: WorkflowPriority(rawValue: priority) ?? .standard,
+            status: parsedStatus ?? .draft,
+            priority: parsedPriority ?? .standard,
             createdBy: createdBy, dueDate: dueDate, createdAt: createdAt,
             completedAt: completedAt, pdfUrl: pdfUrl, pdfHash: pdfHash
         )
@@ -229,10 +241,14 @@ extension CDStepAssignment {
     }
 
     func toDomain() -> StepAssignment {
-        StepAssignment(
+        let parsedStatus = StepStatus(rawValue: status)
+        if parsedStatus == nil {
+            print("[FormFlow] CDStepAssignment toDomain: unknown status '\(status)' for step \(id), defaulting to .locked")
+        }
+        return StepAssignment(
             id: id, workflowId: workflowId, stepNumber: Int(stepNumber),
             stepName: stepName, assignedTo: assignedTo, assignedBy: assignedBy,
-            status: StepStatus(rawValue: status) ?? .locked,
+            status: parsedStatus ?? .locked,
             dueDate: dueDate, assignedAt: assignedAt, completedAt: completedAt,
             isLocked: isLocked, lockedAt: lockedAt
         )

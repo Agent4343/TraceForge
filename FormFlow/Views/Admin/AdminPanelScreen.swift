@@ -366,7 +366,8 @@ struct InviteUsersScreen: View {
 
     private func sendInvites() {
         isSending = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             isSending = false
             dismiss()
         }

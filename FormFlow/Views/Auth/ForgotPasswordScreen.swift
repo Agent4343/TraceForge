@@ -119,7 +119,8 @@ struct ForgotPasswordScreen: View {
 
     private func submitReset() {
         isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             isLoading = false
             isSubmitted = true
         }

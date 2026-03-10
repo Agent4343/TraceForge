@@ -199,11 +199,49 @@ struct ShiftHandoverScreen: View {
         }
     }
 
+    @State private var transferError: String?
+
     private func executeTransfer() {
+        guard let fromUser = appState.currentUser,
+              let toUser = selectedUser else { return }
+
         isTransferring = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            isTransferring = false
-            dismiss()
+        transferError = nil
+
+        Task {
+            do {
+                // Queue handover operation for sync
+                SyncService.shared.queueOperation(
+                    type: .handover,
+                    entityType: "step_assignment",
+                    entityId: UUID(),
+                    value: "{\"from\": \"\(fromUser.id)\", \"to\": \"\(toUser.id)\", \"note\": \"\(handoverNote)\"}"
+                )
+
+                // Add audit log entry
+                let entry = AuditLogEntry(
+                    id: UUID(),
+                    workflowId: workflowId,
+                    stepNumber: stepNumber,
+                    actorId: fromUser.id,
+                    actorName: fromUser.displayName,
+                    actorRole: fromUser.role.rawValue,
+                    action: .handoverInitiated,
+                    entityType: "step_assignment",
+                    entityId: UUID(),
+                    metadata: "{\"to_user\": \"\(toUser.displayName)\", \"note\": \"\(handoverNote)\"}",
+                    timestamp: Date(),
+                    deviceId: fromUser.deviceId
+                )
+                appState.auditLog.append(entry)
+
+                try await Task.sleep(nanoseconds: 500_000_000)
+                isTransferring = false
+                dismiss()
+            } catch {
+                isTransferring = false
+                transferError = "Transfer failed: \(error.localizedDescription)"
+            }
         }
     }
 }

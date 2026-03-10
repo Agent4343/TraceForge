@@ -2,8 +2,9 @@ import Foundation
 import Security
 
 // MARK: - Keychain Service
+// Thread-safe: Keychain APIs (SecItem*) are thread-safe per Apple docs
 
-class KeychainService {
+final class KeychainService: Sendable {
     static let shared = KeychainService()
 
     private let serviceName = "com.formflow.app"

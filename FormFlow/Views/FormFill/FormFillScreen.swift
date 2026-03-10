@@ -180,7 +180,8 @@ struct FormFillScreen: View {
         for (fieldId, value) in fieldValues {
             appState.saveResponse(workflowId: task.workflowId, fieldId: fieldId, value: value)
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
             saveState = .saved
         }
     }
@@ -507,62 +508,6 @@ struct DateInput: View {
                 .font(FFTypography.bodySmall())
                 .foregroundColor(FFColors.danger)
             }
-        }
-    }
-}
-
-struct PhotoInput: View {
-    @Binding var value: String
-    let maxPhotos: Int
-    @State private var capturedPhotos: [Int] = [] // Placeholder for photo indices
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(0..<maxPhotos, id: \.self) { index in
-                    if capturedPhotos.contains(index) {
-                        ZStack(alignment: .topTrailing) {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(FFColors.accentCyan.opacity(0.2))
-                                .frame(height: 100)
-                                .overlay(
-                                    Image(systemName: "photo")
-                                        .font(.system(size: 24))
-                                        .foregroundColor(FFColors.accentCyan)
-                                )
-
-                            Button {
-                                capturedPhotos.removeAll { $0 == index }
-                                value = "\(capturedPhotos.count) photos"
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(FFColors.danger)
-                                    .padding(4)
-                            }
-                        }
-                    } else {
-                        Button {
-                            capturedPhotos.append(index)
-                            value = "\(capturedPhotos.count) photos"
-                        } label: {
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(FFColors.border, style: StrokeStyle(lineWidth: 1, dash: [6]))
-                                .frame(height: 100)
-                                .overlay(
-                                    VStack(spacing: 4) {
-                                        Image(systemName: "camera")
-                                            .font(.system(size: 20))
-                                        Text("Tap to capture")
-                                            .font(FFTypography.bodySmall())
-                                    }
-                                    .foregroundColor(FFColors.textSecondary)
-                                )
-                        }
-                    }
-                }
-            }
-            .accessibilityElement(children: .contain)
         }
     }
 }
