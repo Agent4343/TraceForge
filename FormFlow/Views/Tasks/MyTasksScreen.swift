@@ -28,7 +28,7 @@ struct MyTasksScreen: View {
                 return due < Date()
             }
         case .pendingHandover:
-            return [] // Would filter based on handover status
+            return tasks.filter { $0.isHandoverPending }
         }
     }
 

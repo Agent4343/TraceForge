@@ -14,6 +14,9 @@ struct TemplateBuilderScreen: View {
     @State private var showFieldTypePicker = false
     @State private var showFieldEditor = false
     @State private var editingField: TemplateField?
+    @State private var showRenameAlert = false
+    @State private var renameStepIndex: Int = 0
+    @State private var renameText: String = ""
 
     var body: some View {
         NavigationStack {
@@ -53,7 +56,9 @@ struct TemplateBuilderScreen: View {
                                 }
                                 .contextMenu {
                                     Button("Rename") {
-                                        // Would open rename dialog
+                                        renameStepIndex = index
+                                        renameText = step.name
+                                        showRenameAlert = true
                                     }
                                     Button("Delete", role: .destructive) {
                                         if steps.count > 1 {
@@ -125,6 +130,15 @@ struct TemplateBuilderScreen: View {
                     })
                 }
             }
+            .alert("Rename Step", isPresented: $showRenameAlert) {
+                TextField("Step name", text: $renameText)
+                Button("Cancel", role: .cancel) { }
+                Button("Rename") {
+                    if steps.indices.contains(renameStepIndex), !renameText.isEmpty {
+                        steps[renameStepIndex].name = renameText
+                    }
+                }
+            }
         }
         .onAppear {
             if let template = template {
@@ -136,6 +150,25 @@ struct TemplateBuilderScreen: View {
                 steps = [TemplateStep(stepNumber: 1, name: "Step 1")]
                 fields = []
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .duplicateField)) { notification in
+            guard let original = notification.object as? TemplateField else { return }
+            let duplicate = TemplateField(
+                stepNumber: original.stepNumber,
+                type: original.type,
+                label: "\(original.label) (Copy)",
+                required: original.required,
+                order: original.order + 1,
+                helpText: original.helpText,
+                options: original.options,
+                minValue: original.minValue,
+                maxValue: original.maxValue,
+                unit: original.unit,
+                maxLength: original.maxLength,
+                maxPhotos: original.maxPhotos,
+                attestationText: original.attestationText
+            )
+            fields.append(duplicate)
         }
     }
 
@@ -317,7 +350,7 @@ struct FieldBuilderCard: View {
         }
         .contextMenu {
             Button("Duplicate") {
-                // Would duplicate
+                NotificationCenter.default.post(name: .duplicateField, object: field)
             }
             Button("Delete", role: .destructive) {
                 onDelete()
@@ -606,6 +639,12 @@ struct FieldEditorSheet: View {
             EmptyView()
         }
     }
+}
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    static let duplicateField = Notification.Name("FormFlow.duplicateField")
 }
 
 #Preview {

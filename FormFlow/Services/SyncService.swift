@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import Network
+import UIKit
 
 // MARK: - Sync Service
 
@@ -12,12 +13,16 @@ class SyncService: ObservableObject {
     @Published var lastSyncDate: Date?
     @Published var pendingOperations: Int = 0
     @Published var isOnline: Bool = true
+    @Published var lastError: String?
 
+    private var operationQueue: [SyncOperation] = []
     private var syncTimer: Timer?
     private let monitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "com.formflow.network-monitor")
+    private let deviceId: String = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
 
     private init() {
+        loadQueueFromDisk()
         startNetworkMonitoring()
         startPeriodicSync()
     }
@@ -44,18 +49,54 @@ class SyncService: ObservableObject {
 
     func syncNow() async {
         guard isOnline, !isSyncing else { return }
+        guard !operationQueue.isEmpty else {
+            lastSyncDate = Date()
+            return
+        }
+
         isSyncing = true
+        lastError = nil
 
-        // Simulate sync
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        var failedOps: [SyncOperation] = []
 
+        for var operation in operationQueue {
+            do {
+                try await pushOperation(operation)
+                operation.synced = true
+            } catch {
+                operation.syncAttemptedAt = Date()
+                operation.errorMessage = error.localizedDescription
+                failedOps.append(operation)
+            }
+        }
+
+        operationQueue = failedOps
+        pendingOperations = failedOps.count
         lastSyncDate = Date()
-        pendingOperations = 0
         isSyncing = false
+
+        if !failedOps.isEmpty {
+            lastError = "Failed to sync \(failedOps.count) operation(s)"
+        }
+
+        saveQueueToDisk()
     }
 
     func queueOperation(type: SyncOperationType, entityType: String, entityId: UUID, fieldId: UUID? = nil, value: String? = nil) {
-        pendingOperations += 1
+        let operation = SyncOperation(
+            id: UUID(),
+            type: type,
+            entityType: entityType,
+            entityId: entityId,
+            fieldId: fieldId,
+            value: value,
+            timestamp: Date(),
+            deviceId: deviceId,
+            synced: false
+        )
+        operationQueue.append(operation)
+        pendingOperations = operationQueue.count
+        saveQueueToDisk()
 
         if isOnline {
             Task {
@@ -64,8 +105,48 @@ class SyncService: ObservableObject {
         }
     }
 
+    // MARK: - API Integration
+
+    private func pushOperation(_ operation: SyncOperation) async throws {
+        let _: SyncResponse = try await APIClient.shared.request(
+            endpoint: "sync/operations",
+            method: .post,
+            body: operation
+        )
+    }
+
+    // MARK: - Persistence
+
+    private var queueFileURL: URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("pending_sync_queue.json")
+    }
+
+    private func saveQueueToDisk() {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        guard let data = try? encoder.encode(operationQueue) else { return }
+        try? data.write(to: queueFileURL, options: .atomic)
+    }
+
+    private func loadQueueFromDisk() {
+        guard let data = try? Data(contentsOf: queueFileURL) else { return }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        if let ops = try? decoder.decode([SyncOperation].self, from: data) {
+            operationQueue = ops
+            pendingOperations = ops.count
+        }
+    }
+
     deinit {
         syncTimer?.invalidate()
         monitor.cancel()
     }
+}
+
+// MARK: - Sync Response
+
+private struct SyncResponse: Decodable {
+    let success: Bool
 }

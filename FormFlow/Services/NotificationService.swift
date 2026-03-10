@@ -106,29 +106,29 @@ class NotificationService: NSObject, ObservableObject {
 
     func handleNotification(userInfo: [AnyHashable: Any]) {
         guard let type = userInfo["type"] as? String else { return }
+        let workflowId = (userInfo["workflow_id"] as? String).flatMap(UUID.init(uuidString:))
+        let appState = AppState.shared
 
         switch type {
-        case "step_assigned":
-            // Navigate to My Tasks
-            break
-        case "step_due_soon":
-            // Navigate to the specific task
-            break
-        case "step_overdue":
-            // Navigate to the specific task with urgency
-            break
-        case "step_completed":
-            // Navigate to workflow detail
-            break
-        case "workflow_complete":
-            // Navigate to workflow detail with PDF option
-            break
-        case "handover_received":
-            // Navigate to My Tasks
-            break
+        case "step_assigned", "handover_received":
+            appState.selectedTab = .myTasks
+            appState.deepLink = .myTasks
+
+        case "step_due_soon", "step_overdue":
+            appState.selectedTab = .myTasks
+            if let workflowId {
+                appState.deepLink = .task(workflowId: workflowId)
+            }
+
+        case "step_completed", "workflow_complete":
+            appState.selectedTab = .workflows
+            if let workflowId {
+                appState.deepLink = .workflowDetail(workflowId: workflowId)
+            }
+
         case "sync_conflict":
-            // Navigate to sync resolution
-            break
+            appState.deepLink = .syncConflict
+
         default:
             break
         }

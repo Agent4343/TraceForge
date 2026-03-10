@@ -5,6 +5,8 @@ import Combine
 
 @MainActor
 class AppState: ObservableObject {
+    static let shared = AppState()
+
     // Auth state
     @Published var isAuthenticated: Bool = false
     @Published var isLoading: Bool = false
@@ -20,6 +22,7 @@ class AppState: ObservableObject {
     // Navigation
     @Published var selectedTab: AppTab = .myTasks
     @Published var showOnboarding: Bool = false
+    @Published var deepLink: DeepLink?
 
     // Subscription
     @Published var currentPlan: SubscriptionPlan = .free
@@ -94,6 +97,15 @@ class AppState: ObservableObject {
     func getResponse(workflowId: UUID, fieldId: UUID) -> String? {
         return formResponses[workflowId]?[fieldId]
     }
+}
+
+// MARK: - Deep Link
+
+enum DeepLink: Equatable {
+    case myTasks
+    case task(workflowId: UUID)
+    case workflowDetail(workflowId: UUID)
+    case syncConflict
 }
 
 // MARK: - App Tabs

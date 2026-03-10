@@ -7,6 +7,7 @@ struct AuditTrailScreen: View {
 
     @State private var selectedCategory: AuditCategory = .all
     @State private var showExportMenu = false
+    @State private var showCopiedToast = false
 
     private var entries: [AuditLogEntry] {
         var all = appState.auditEntriesForWorkflow(workflowId)
@@ -59,12 +60,12 @@ struct AuditTrailScreen: View {
                 if let user = appState.currentUser, user.role.canViewAuditTrail {
                     Menu {
                         Button {
-                            // Export CSV
+                            exportCSV()
                         } label: {
                             Label("Export as CSV", systemImage: "tablecells")
                         }
                         Button {
-                            // Copy JSON
+                            copyJSON()
                         } label: {
                             Label("Copy raw JSON", systemImage: "doc.on.clipboard")
                         }
@@ -78,6 +79,63 @@ struct AuditTrailScreen: View {
         .toolbarBackground(FFColors.primaryNavy, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .overlay(alignment: .bottom) {
+            if showCopiedToast {
+                Text("Copied to clipboard")
+                    .font(FFTypography.bodySmall())
+                    .foregroundColor(FFColors.textPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(FFColors.surfaceElevated)
+                    .cornerRadius(FFLayout.cornerRadius)
+                    .shadow(radius: 4)
+                    .padding(.bottom, 24)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+    }
+
+    // MARK: - Export
+
+    private func exportCSV() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .medium
+
+        var csv = "Timestamp,Actor,Role,Action,Entity Type,Entity ID,Step,Metadata\n"
+        for entry in entries.sorted(by: { $0.timestamp < $1.timestamp }) {
+            let step = entry.stepNumber.map { String($0) } ?? ""
+            let meta = entry.metadata.replacingOccurrences(of: "\"", with: "\"\"")
+            csv += "\"\(dateFormatter.string(from: entry.timestamp))\",\"\(entry.actorName)\",\"\(entry.actorRole)\",\"\(entry.action.displayText)\",\"\(entry.entityType)\",\"\(entry.entityId.uuidString)\",\"\(step)\",\"\(meta)\"\n"
+        }
+
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(workflowName)-audit.csv")
+        try? csv.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            rootVC.present(activityVC, animated: true)
+        }
+    }
+
+    private func copyJSON() {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+
+        if let data = try? encoder.encode(entries.sorted(by: { $0.timestamp < $1.timestamp })),
+           let json = String(data: data, encoding: .utf8) {
+            UIPasteboard.general.string = json
+            withAnimation {
+                showCopiedToast = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                withAnimation {
+                    showCopiedToast = false
+                }
+            }
+        }
     }
 }
 

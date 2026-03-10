@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PaywallScreen: View {
     @Environment(\.dismiss) var dismiss
+    @StateObject private var storeKit = StoreKitService.shared
     let featureName: String
     let requiredPlan: String
 
@@ -44,11 +45,16 @@ struct PaywallScreen: View {
 
                         // Primary CTA
                         Button {
-                            // Would trigger StoreKit purchase
+                            Task {
+                                if let product = storeKit.product(for: "formflow.pro.monthly") {
+                                    _ = try? await storeKit.purchase(product)
+                                }
+                            }
                         } label: {
                             Text("Upgrade to Pro — $29/month")
                                 .ffPrimaryButton()
                         }
+                        .disabled(storeKit.isLoading)
 
                         Button {
                             showAllPlans = true
@@ -122,6 +128,7 @@ struct PaywallScreen: View {
 
 struct AllPlansScreen: View {
     @Environment(\.dismiss) var dismiss
+    @StateObject private var storeKit = StoreKitService.shared
 
     var body: some View {
         NavigationStack {
@@ -140,6 +147,7 @@ struct AllPlansScreen: View {
                             name: "Free",
                             price: "$0",
                             period: "forever",
+                            productId: nil,
                             features: [
                                 "3 templates",
                                 "25 workflow runs/month",
@@ -155,6 +163,7 @@ struct AllPlansScreen: View {
                             name: "Pro",
                             price: "$29",
                             period: "/month",
+                            productId: "formflow.pro.monthly",
                             features: [
                                 "Unlimited templates",
                                 "Unlimited workflow runs",
@@ -181,6 +190,7 @@ struct AllPlansScreen: View {
                             name: "Business",
                             price: "$59",
                             period: "/user/month",
+                            productId: "formflow.business.monthly",
                             features: [
                                 "Everything in Pro",
                                 "Unlimited users",
@@ -219,7 +229,7 @@ struct AllPlansScreen: View {
         }
     }
 
-    private func planCard(name: String, price: String, period: String, features: [String], isCurrent: Bool, accent: Color) -> some View {
+    private func planCard(name: String, price: String, period: String, productId: String?, features: [String], isCurrent: Bool, accent: Color) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(name)
@@ -260,9 +270,13 @@ struct AllPlansScreen: View {
                 }
             }
 
-            if !isCurrent {
+            if !isCurrent, let productId {
                 Button {
-                    // StoreKit purchase
+                    Task {
+                        if let product = storeKit.product(for: productId) {
+                            _ = try? await storeKit.purchase(product)
+                        }
+                    }
                 } label: {
                     Text("Upgrade to \(name)")
                         .font(FFTypography.bodyMediumBold())

@@ -284,6 +284,7 @@ enum MockData {
         let status: StepStatus
         let priority: WorkflowPriority
         let workflowId: UUID
+        var isHandoverPending: Bool = false
     }
 
     static let myTasks: [TaskItem] = [

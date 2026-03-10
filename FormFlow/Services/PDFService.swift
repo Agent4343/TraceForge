@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import CryptoKit
 
 // MARK: - PDF Service
 
@@ -167,13 +168,9 @@ class PDFService {
     }
 
     private func computeDocumentHash(workflow: WorkflowInstance) -> String {
-        let input = "\(workflow.id.uuidString)|\(workflow.name)|\(workflow.status.rawValue)|\(Date().timeIntervalSince1970)"
+        let input = "\(workflow.id.uuidString)|\(workflow.name)|\(workflow.status.rawValue)|\(workflow.createdAt.timeIntervalSince1970)"
         let data = Data(input.utf8)
-        // Simple hash for demo — use CryptoKit in production
-        var hash: UInt64 = 5381
-        for byte in data {
-            hash = ((hash << 5) &+ hash) &+ UInt64(byte)
-        }
-        return String(format: "%016llx", hash) + String(format: "%016llx", hash ^ 0xDEADBEEF) + String(format: "%016llx", hash &* 31) + String(format: "%016llx", hash &+ 42)
+        let digest = SHA256.hash(data: data)
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }
