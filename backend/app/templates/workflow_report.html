@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page { size: A4; margin: 20mm; }
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; color: #1a1a1a; line-height: 1.5; }
+    .header { border-bottom: 3px solid #0066FF; padding-bottom: 12px; margin-bottom: 24px; }
+    .header h1 { margin: 0; font-size: 20pt; color: #0066FF; }
+    .header .meta { color: #666; font-size: 9pt; margin-top: 4px; }
+    .section { margin-bottom: 24px; page-break-inside: avoid; }
+    .section h2 { font-size: 14pt; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .info-item { margin-bottom: 6px; }
+    .info-label { font-weight: bold; font-size: 9pt; color: #888; text-transform: uppercase; }
+    .info-value { font-size: 11pt; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th { background: #f5f5f5; text-align: left; padding: 8px 10px; font-size: 9pt; text-transform: uppercase; color: #666; border-bottom: 2px solid #ddd; }
+    td { padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 10pt; }
+    .status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 9pt; font-weight: bold; }
+    .status-complete { background: #e6f4ea; color: #137333; }
+    .status-signed { background: #e8f0fe; color: #1a73e8; }
+    .status-in_progress { background: #fef7e0; color: #b06000; }
+    .signature-block { border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-top: 8px; page-break-inside: avoid; }
+    .signature-block .signer { font-weight: bold; }
+    .signature-block .attestation { font-style: italic; color: #555; font-size: 9pt; margin-top: 4px; }
+    .signature-block .sig-meta { font-size: 8pt; color: #999; margin-top: 6px; }
+    .signature-img { max-width: 200px; max-height: 60px; margin-top: 6px; }
+    .audit-entry { font-size: 9pt; color: #555; padding: 4px 0; border-bottom: 1px dotted #eee; }
+    .audit-entry .timestamp { color: #999; }
+    .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 8pt; color: #999; text-align: center; }
+    .hash { font-family: monospace; font-size: 7pt; word-break: break-all; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ workflow.name }}</h1>
+        <div class="meta">
+            Generated {{ generated_at }} &bull; Organization: {{ org_name }}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Workflow Details</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value"><span class="status status-{{ workflow.status }}">{{ workflow.status | upper }}</span></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Priority</div>
+                <div class="info-value">{{ workflow.priority | title }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Created</div>
+                <div class="info-value">{{ workflow.created_at }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Due Date</div>
+                <div class="info-value">{{ workflow.due_date or 'N/A' }}</div>
+            </div>
+            {% if workflow.completed_at %}
+            <div class="info-item">
+                <div class="info-label">Completed</div>
+                <div class="info-value">{{ workflow.completed_at }}</div>
+            </div>
+            {% endif %}
+            <div class="info-item">
+                <div class="info-label">Template</div>
+                <div class="info-value">{{ template_name }} (v{{ workflow.template_version }})</div>
+            </div>
+        </div>
+    </div>
+
+    {% for step in steps %}
+    <div class="section">
+        <h2>Step {{ step.step_number }}: {{ step.step_name }}</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Assigned To</div>
+                <div class="info-value">{{ step.assignee_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value"><span class="status status-{{ step.status }}">{{ step.status | upper }}</span></div>
+            </div>
+        </div>
+
+        {% if step.responses %}
+        <table>
+            <thead>
+                <tr><th>Field</th><th>Response</th><th>Timestamp</th></tr>
+            </thead>
+            <tbody>
+                {% for resp in step.responses %}
+                <tr>
+                    <td>{{ resp.field_label or resp.field_id }}</td>
+                    <td>{{ resp.value }}</td>
+                    <td>{{ resp.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if step.signature %}
+        <div class="signature-block">
+            <div class="signer">{{ step.signature.signer_name }} ({{ step.signature.signer_role }})</div>
+            <div class="attestation">"{{ step.signature.attestation_text }}"</div>
+            {% if step.signature.image_base64 %}
+            <img class="signature-img" src="data:image/png;base64,{{ step.signature.image_base64 }}" alt="Signature">
+            {% endif %}
+            <div class="sig-meta">
+                Signed: {{ step.signature.timestamp }}
+                &bull; MFA: {{ 'Yes' if step.signature.mfa_verified else 'No' }}
+                &bull; Content Hash: <span class="hash">{{ step.signature.content_hash }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if audit_entries %}
+    <div class="section">
+        <h2>Audit Trail</h2>
+        {% for entry in audit_entries %}
+        <div class="audit-entry">
+            <span class="timestamp">{{ entry.timestamp }}</span> &mdash;
+            <strong>{{ entry.actor_name }}</strong> ({{ entry.actor_role }}):
+            {{ entry.action | replace('_', ' ') | title }}
+            {% if entry.step_number %} on Step {{ entry.step_number }}{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        FormFlow Compliance Report &bull; Document Hash: <span class="hash">{{ content_hash }}</span>
+        <br>This document was generated automatically and constitutes a tamper-evident record.
+    </div>
+</body>
+</html>

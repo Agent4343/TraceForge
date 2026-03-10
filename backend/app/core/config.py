@@ -28,6 +28,23 @@ class Settings(BaseSettings):
     # Redis (for Celery)
     redis_url: str = "redis://localhost:6379/0"
 
+    # Email (SES)
+    ses_region: str = "us-east-1"
+    ses_sender_email: str = "noreply@formflow.io"
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+
+    # MFA
+    mfa_issuer_name: str = "FormFlow"
+
+    # PDF templates
+    pdf_templates_dir: str = "app/templates"
+
+    # Base URL for links in emails
+    base_url: str = "https://app.formflow.io"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

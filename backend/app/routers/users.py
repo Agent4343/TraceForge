@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.deps import get_current_user, require_role
 from app.core.security import hash_password
-from app.models.user import User
+from app.models.user import Organization, User
 from app.schemas.user import (
     DeviceTokenUpdate,
     InviteRequest,
@@ -53,6 +53,14 @@ async def invite_users(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role("admin")),
 ):
+    import secrets
+
+    from app.services.email import send_invite_email
+
+    # Load org name for the invite email
+    org_result = await db.execute(select(Organization).where(Organization.id == current_user.organization_id))
+    org = org_result.scalar_one()
+
     sent = 0
     failed: list[str] = []
     for invite in body.invites:
@@ -61,15 +69,18 @@ async def invite_users(
             failed.append(invite.email)
             continue
 
+        temp_password = secrets.token_urlsafe(12)
         user = User(
             organization_id=current_user.organization_id,
             email=invite.email,
             display_name=invite.email.split("@")[0],
-            password_hash=hash_password("changeme"),  # TODO: send invite email with temp password
+            password_hash=hash_password(temp_password),
             role=invite.role,
         )
         db.add(user)
         sent += 1
+
+        send_invite_email(invite.email, current_user.display_name, org.name, temp_password)
 
     await db.commit()
     return InviteResponse(sent=sent, failed=failed)

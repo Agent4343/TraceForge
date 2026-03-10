@@ -28,5 +28,27 @@ services:
       - db
       - redis
 
+  worker:
+    build: .
+    command: celery -A app.worker worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+asyncpg://formflow:formflow@db:5432/formflow
+      SECRET_KEY: dev-secret-key
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  beat:
+    build: .
+    command: celery -A app.worker beat --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+asyncpg://formflow:formflow@db:5432/formflow
+      SECRET_KEY: dev-secret-key
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
 volumes:
   pgdata:

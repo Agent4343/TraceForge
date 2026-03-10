@@ -216,6 +216,16 @@ async def create_workflow(
 
     await db.commit()
     await db.refresh(workflow)
+
+    # Send push notifications to assigned users
+    from app.services.push import notify_step_assigned
+
+    for sa_input in body.step_assignments:
+        if sa_input.assigned_to != current_user.id:
+            matching_step = next((s for s in steps if s.get("stepNumber") == sa_input.step_number), None)
+            step_name = matching_step.get("name", f"Step {sa_input.step_number}") if matching_step else f"Step {sa_input.step_number}"
+            await notify_step_assigned(db, sa_input.assigned_to, workflow.name, step_name, workflow.id)
+
     return _workflow_out(workflow)
 
 
@@ -346,13 +356,15 @@ async def sign_step(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    image_data = base64.b64decode(body.signature_image_base64)
+
     sig = SignatureRecord(
         workflow_id=workflow_id,
         step_number=step_number,
         signer_id=current_user.id,
         signer_name=current_user.display_name,
         signer_role=current_user.role,
-        signature_image_data=base64.b64decode(body.signature_image_base64),
+        signature_image_data=image_data,
         attestation_text=body.attestation_text,
         device_id=body.device_id,
         timestamp=body.timestamp or datetime.now(timezone.utc),
@@ -361,6 +373,11 @@ async def sign_step(
         content_hash=body.content_hash,
     )
     db.add(sig)
+
+    # Upload signature image to S3
+    from app.services.storage import upload_signature_image
+
+    upload_signature_image(workflow_id, step_number, current_user.id, image_data)
 
     await _add_audit(
         db,
@@ -427,6 +444,15 @@ async def handover_step(
 
     await db.commit()
     await db.refresh(step)
+
+    # Send push notification to the handover recipient
+    from app.services.push import notify_handover
+
+    wf_result = await db.execute(select(Workflow).where(Workflow.id == workflow_id))
+    wf = wf_result.scalar_one_or_none()
+    wf_name = wf.name if wf else "Unknown"
+    await notify_handover(db, body.to_user_id, current_user.display_name, wf_name, workflow_id)
+
     return _step_out(step)
 
 
@@ -466,15 +492,20 @@ async def export_pdf(
     if wf is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workflow not found")
 
-    # Generate hash from workflow data
-    hash_input = f"{wf.id}|{wf.name}|{wf.status}|{wf.created_at.isoformat()}"
-    pdf_hash = hashlib.sha256(hash_input.encode()).hexdigest()
+    # Render PDF from workflow data
+    from app.services.pdf import render_workflow_pdf
+    from app.services.storage import upload_pdf
 
-    # TODO: actually render PDF and upload to S3
-    pdf_url = f"https://api.formflow.io/pdfs/{wf.id}.pdf"
+    pdf_bytes, content_hash = await render_workflow_pdf(db, workflow_id)
+
+    # Upload to S3
+    pdf_url = upload_pdf(workflow_id, pdf_bytes)
+    if pdf_url is None:
+        # S3 not configured — use a local placeholder
+        pdf_url = f"/local/workflows/{workflow_id}/report.pdf"
 
     wf.pdf_url = pdf_url
-    wf.pdf_hash = pdf_hash
+    wf.pdf_hash = content_hash
 
     await _add_audit(
         db,
@@ -484,12 +515,12 @@ async def export_pdf(
         action="pdf_generated",
         entity_type="pdf",
         entity_id=workflow_id,
-        metadata_json=f'{{"hash": "{pdf_hash}"}}',
+        metadata_json=f'{{"hash": "{content_hash}"}}',
     )
 
     await db.commit()
     return PDFExportOut(
         pdf_url=pdf_url,
-        pdf_hash=pdf_hash,
+        pdf_hash=content_hash,
         generated_at=datetime.now(timezone.utc).isoformat(),
     )
